@@ -30,7 +30,7 @@ export function Testimonials() {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Customers Say</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Don't just take our word for it. Here's what our lovely customers have to say about their experience with Lil.Seonmul.
+            Don&apos;t just take our word for it. Here&apos;s what our lovely customers have to say about their experience with Lil.Seonmul.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export function Testimonials() {
                 </div>
                 
                 {/* Quote */}
-                <p className="text-pretty flex-grow mb-4">"{testimonial.quote}"</p>
+                <p className="text-pretty flex-grow mb-4">&ldquo;{testimonial.quote}&rdquo;</p>
                 
                 {/* Author Info */}
                 <div className="mt-auto pt-4 border-t border-border">

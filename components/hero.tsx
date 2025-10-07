@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 export function Hero() {
   const waLink =
@@ -57,11 +58,13 @@ export function Hero() {
             )}
           >
             {/* Brand logo placeholder */}
-            <div className="aspect-video w-full overflow-hidden rounded-lg bg-white">
-              <img
+            <div className="aspect-video w-full overflow-hidden rounded-lg bg-white relative">
+              <Image
                 src="/pastel-brand-logo-placeholder.jpg"
                 alt="Lil.Seonmul logo placeholder"
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 420px"
               />
             </div>
             <p className="mt-3 text-center text-sm text-gray-700">
