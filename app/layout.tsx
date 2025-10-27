@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Suspense } from "react"
 import "./globals.css"
+import { Navbar } from "@/components/navbar"
 
 export const metadata: Metadata = {
   title: {
@@ -13,6 +14,9 @@ export const metadata: Metadata = {
   description:
     "Lil.Seonmul by Lily Octavia — soft pastel gifts and services. Feminine-neutral design, product sales, and lead generation. Shop, connect on WhatsApp, and explore our gallery.",
   keywords: ["Lil.Seonmul", "Lily Octavia", "Seonmul", "pastel gifts", "soft pink", "branding", "women neutral"],
+  icons: {
+    icon: "/assets/logo.png",
+  },
   openGraph: {
     title: "Lil.Seonmul — Soft Pastel Gifts & Services",
     description:
@@ -47,7 +51,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={null}>{children}</Suspense>
+        <Navbar />
+        <main className="min-h-screen">
+          <Suspense fallback={null}>{children}</Suspense>
+        </main>
       </body>
     </html>
   )
