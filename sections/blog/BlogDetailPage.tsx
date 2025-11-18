@@ -1,3 +1,4 @@
+// @/sections/blog/BlogDetailPage.tsx
 "use client"
 
 import Image from "next/image";
@@ -19,20 +20,24 @@ interface Post {
 }
 
 interface BlogDetailPageProps {
-  params: {
-    slug: string;
-  };
+  slug: string;
 }
 
-export default function BlogDetailPage({ params }: BlogDetailPageProps) {
+export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!slug) {
+      setError("No post slug provided");
+      setLoading(false);
+      return;
+    }
+
     async function fetchPost() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${params.slug}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${slug}`);
         if (!res.ok) {
           if (res.status === 404) {
             notFound();
@@ -50,7 +55,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
     }
 
     fetchPost();
-  }, [params.slug]);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -87,19 +92,15 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
         </Link>
         
         {post.featuredImage && (
-          <div className="aspect-video w-full relative mb-8 rounded-lg overflow-hidden">
-            <Image
-              src={post.featuredImage}
-              alt={post.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = `https://via.placeholder.com/800x450?text=${encodeURIComponent(post.title)}`;
-              }}
-            />
-          </div>
+           <div className="aspect-video w-full relative mb-8 rounded-lg overflow-hidden">
+              <Image
+                src={post.featuredImage}
+                alt={post.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+              />
+            </div>
         )}
         
         <div className="flex items-center text-sm text-muted-foreground mb-4">

@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { sql } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> } // Update the type to indicate params is a Promise
 ) {
   try {
-    const { slug } = params;
+    // Await the params before destructuring
+    const { slug } = await params;
     
     if (!slug) {
       return NextResponse.json({ error: 'Slug parameter is required' }, { status: 400 });

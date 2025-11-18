@@ -40,55 +40,26 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!title || !slug || !content) {
       return NextResponse.json(
-        { error: 'Missing required fields: title, slug, and content are required' }, 
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Check if slug already exists
-    const existingPost = await db
-      .select({ id: posts.id })
-      .from(posts)
-      .where(eq(posts.slug, slug))
-      .limit(1);
-
-    if (existingPost.length > 0) {
-      return NextResponse.json(
-        { error: 'A post with this slug already exists' }, 
-        { status: 409 }
-      );
-    }
-
-    // Generate a unique ID
-    const id = uuidv4();
-
-    // Create the new post
-    const newPost = await db
-      .insert(posts)
-      .values({
-        id,
-        title,
-        slug,
-        content,
-        excerpt: excerpt || null,
-        featuredImage: featuredImage || null,
-      })
-      .returning({
-        id: posts.id,
-        title: posts.title,
-        slug: posts.slug,
-        content: posts.content,
-        excerpt: posts.excerpt,
-        featuredImage: posts.featuredImage,
-        createdAt: posts.createdAt,
-        updatedAt: posts.updatedAt,
-      });
+    // Insert the new post
+    const newPost = await db.insert(posts).values({
+      id: crypto.randomUUID(),
+      title,
+      slug,
+      content,
+      excerpt: excerpt || null,
+      featuredImage: featuredImage || null,
+    }).returning();
 
     return NextResponse.json(newPost[0], { status: 201 });
   } catch (error) {
     console.error('Error creating post:', error);
     return NextResponse.json(
-      { error: 'Failed to create post', details: error instanceof Error ? error.message : 'Unknown error' }, 
+      { error: 'Failed to create post' },
       { status: 500 }
     );
   }
