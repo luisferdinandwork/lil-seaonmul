@@ -1,8 +1,8 @@
+// app/api/posts/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
 
 export async function GET() {
   try {
@@ -42,6 +42,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
+      );
+    }
+
+    // Check if slug already exists
+    const existingPost = await db
+      .select({ id: posts.id })
+      .from(posts)
+      .where(eq(posts.slug, slug))
+      .limit(1);
+
+    if (existingPost.length > 0) {
+      return NextResponse.json(
+        { error: 'A post with this slug already exists' },
+        { status: 409 }
       );
     }
 

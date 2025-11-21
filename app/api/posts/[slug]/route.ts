@@ -1,3 +1,4 @@
+// app/api/posts/[slug]
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';

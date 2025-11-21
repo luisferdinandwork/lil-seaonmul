@@ -1,3 +1,4 @@
+// db/schema
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const posts = pgTable('posts', {
@@ -8,7 +9,7 @@ export const posts = pgTable('posts', {
   excerpt: text('excerpt'),
   featuredImage: text('featured_image'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
 export type Post = typeof posts.$inferSelect;

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { notFound } from "next/navigation";
+import DOMPurify from 'dompurify';
 
 interface Post {
   id: string;
@@ -56,6 +57,25 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
     fetchPost();
   }, [slug]);
+
+  // Sanitize HTML content
+  const createMarkup = (htmlContent: string) => {
+    const cleanHTML = DOMPurify.sanitize(htmlContent, {
+      ALLOWED_TAGS: [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+        'p', 'br', 'hr',
+        'ul', 'ol', 'li',
+        'blockquote', 
+        'a', 
+        'strong', 'em', 'u', 's', 'del',
+        'code', 'pre',
+        'img',
+        'div', 'span'
+      ],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel']
+    });
+    return { __html: cleanHTML };
+  };
 
   if (loading) {
     return (
@@ -115,8 +135,9 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
         )}
       </div>
       
-      <div className="prose prose-lg max-w-none">
-        <div dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }} />
+      <div className="prose prose-lg max-w-none tiptap-content">
+        {/* Render rich text content with sanitization */}
+        <div dangerouslySetInnerHTML={createMarkup(post.content)} />
       </div>
     </div>
   );

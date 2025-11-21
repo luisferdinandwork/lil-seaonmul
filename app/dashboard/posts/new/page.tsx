@@ -1,8 +1,8 @@
-// app/dashboard/edit/[id]/page.tsx
+// app/dashboard/posts/new/page.tsx
 "use client"
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,13 +39,9 @@ const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
   )
 });
 
-export default function EditPostPage() {
+export default function NewPostPage() {
   const router = useRouter();
-  const params = useParams();
-  const postId = params.id as string;
-  
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
     slug: "",
@@ -54,56 +50,39 @@ export default function EditPostPage() {
     featuredImage: ""
   });
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${postId}`);
-        if (!res.ok) throw new Error('Failed to fetch post');
-        
-        const post = await res.json();
-        setFormData({
-          title: post.title,
-          slug: post.slug,
-          content: post.content,
-          excerpt: post.excerpt || "",
-          featuredImage: post.featuredImage || ""
-        });
-      } catch (error) {
-        console.error('Error fetching post:', error);
-        toast.error('Failed to load post');
-        router.push('/dashboard');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (postId) {
-      fetchPost();
-    }
-  }, [postId, router]);
-
-  const handleUpdatePost = async (e: React.FormEvent) => {
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    
+    // Validate before submitting
+    if (!formData.title || !formData.slug || !formData.content) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${postId}`, {
-        method: 'PUT',
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error('Failed to update post');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create post');
+      }
       
-      toast.success('Post updated successfully');
-      router.push('/dashboard');
+      toast.success('Post created successfully');
+      router.push(`/blog/${data.slug}`);
     } catch (error) {
-      console.error('Error updating post:', error);
-      toast.error('Failed to update post');
+      console.error('Error creating post:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create post');
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -137,16 +116,6 @@ export default function EditPostPage() {
     }));
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto max-w-4xl px-4 py-12">
-        <div className="text-center">
-          <p>Loading post...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="mb-8">
@@ -156,7 +125,7 @@ export default function EditPostPage() {
             Back to Dashboard
           </Button>
         </Link>
-        <h1 className="text-3xl md:text-4xl font-bold">Edit Post</h1>
+        <h1 className="text-3xl md:text-4xl font-bold">Create New Post</h1>
       </div>
 
       <Card>
@@ -164,7 +133,7 @@ export default function EditPostPage() {
           <CardTitle>Post Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleUpdatePost} className="space-y-6">
+          <form onSubmit={handleCreatePost} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -216,6 +185,7 @@ export default function EditPostPage() {
                       alt="Featured preview"
                       fill
                       className="object-cover"
+                      unoptimized
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
                     />
                   </div>
@@ -236,8 +206,8 @@ export default function EditPostPage() {
               <Link href="/dashboard">
                 <Button variant="outline" type="button">Cancel</Button>
               </Link>
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Creating...' : 'Create Post'}
               </Button>
             </div>
           </form>
