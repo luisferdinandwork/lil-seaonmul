@@ -1,4 +1,4 @@
-// app/dashboard/edit/[id]/page.tsx
+// app/dashboard/edit/[slug]/page.tsx
 "use client"
 
 import { useState, useEffect } from "react";
@@ -42,7 +42,7 @@ const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
-  const postId = params.id as string;
+  const slug = params.slug as string; // Now using slug instead of ID
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -57,7 +57,7 @@ export default function EditPostPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${postId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${slug}`);
         if (!res.ok) throw new Error('Failed to fetch post');
         
         const post = await res.json();
@@ -77,17 +77,24 @@ export default function EditPostPage() {
       }
     };
 
-    if (postId) {
+    if (slug) {
       fetchPost();
     }
-  }, [postId, router]);
+  }, [slug, router]);
 
   const handleUpdatePost = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate before submitting
+    if (!formData.title || !formData.slug || !formData.content) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
     setSaving(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${postId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${slug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -95,13 +102,17 @@ export default function EditPostPage() {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error('Failed to update post');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update post');
+      }
       
       toast.success('Post updated successfully');
-      router.push('/dashboard');
+      router.push(`/blog/${data.slug}`);
     } catch (error) {
       console.error('Error updating post:', error);
-      toast.error('Failed to update post');
+      toast.error(error instanceof Error ? error.message : 'Failed to update post');
     } finally {
       setSaving(false);
     }
@@ -216,6 +227,7 @@ export default function EditPostPage() {
                       alt="Featured preview"
                       fill
                       className="object-cover"
+                      unoptimized
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
                     />
                   </div>

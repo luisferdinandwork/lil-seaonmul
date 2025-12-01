@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, BookOpen, Mail, ShoppingBag } from "lucide-react";
+import { Menu, X, Home, BookOpen, ShoppingBag, LayoutDashboard } from "lucide-react";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,7 +13,6 @@ export function Navbar() {
   const navItems = [
     { href: "/", label: "Home", icon: <Home className="h-4 w-4" /> },
     { href: "/blog", label: "Blog", icon: <BookOpen className="h-4 w-4" /> },
-    { href: "/contact", label: "Contact", icon: <Mail className="h-4 w-4" /> },
     { 
       href: "https://shopee.co.id/litty.kitty10", 
       label: "Shop", 
@@ -50,6 +49,14 @@ export function Navbar() {
                 <span>{item.label}</span>
               </Link>
             ))}
+            
+            {/* Dashboard Button */}
+            <Button asChild size="sm" className="ml-2">
+              <Link href="/dashboard" className="flex items-center space-x-1">
+                <LayoutDashboard className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -77,6 +84,14 @@ export function Navbar() {
                   <span>{item.label}</span>
                 </Link>
               ))}
+              
+              {/* Mobile Dashboard Button */}
+              <Button asChild className="justify-start" onClick={() => setIsMenuOpen(false)}>
+                <Link href="/dashboard" className="flex items-center space-x-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </Button>
             </div>
           </div>
         )}

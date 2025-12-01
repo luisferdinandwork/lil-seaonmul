@@ -101,7 +101,7 @@ export default function BlogPage() {
               </CardContent>
               <CardFooter className="px-6 pb-6 pt-0">
                 <Link href={`/blog/${post.slug}`} className="w-full">
-                  <Button variant="outline" className="w-full justify-between bg-primary">
+                  <Button variant="outline" className="w-full justify-between">
                     Read Post
                     <ArrowRight className="h-4 w-4" />
                   </Button>

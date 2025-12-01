@@ -9,9 +9,9 @@ export default function HomePage() {
     <main className="flex flex-col">
       <Hero />
       <div className="flex flex-col max-w-7xl mx-auto space-y-10 mt-20">
-        <BlogPreview />
-        <Testimonials />
+        {/* <BlogPreview /> */}
         <MediaGallery />
+        <Testimonials />
         <ContactForm />
       </div>
       <FooterLinks />
