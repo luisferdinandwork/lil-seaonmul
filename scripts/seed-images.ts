@@ -24,18 +24,51 @@ async function seed() {
   try {
     // Dynamically import modules after environment variables are loaded
     const { db } = await import('../db/index');
-    const { posts } = await import('../db/schema');
+    const { posts, authors } = await import('../db/schema');
     const { sql } = await import('drizzle-orm');
     const cloudinary = await import('../lib/cloudinary').then(m => m.default);
 
-    // Clear existing posts
+    // Clear existing tables - need to truncate in the right order due to foreign key
     await db.execute(sql`TRUNCATE TABLE posts RESTART IDENTITY CASCADE;`);
-    console.log('Cleared existing posts');
+    await db.execute(sql`TRUNCATE TABLE authors RESTART IDENTITY CASCADE;`);
+    console.log('Cleared existing tables');
 
     // Upload images to Cloudinary and get URLs
-    const imageUrls = await uploadImagesToCloudinary(cloudinary);
+    const postImageUrls = await uploadPostImagesToCloudinary(cloudinary);
+    const avatarImageUrls = await uploadAvatarImagesToCloudinary(cloudinary);
     
-    // Insert sample posts with Cloudinary images
+    // Insert sample authors first
+    const sampleAuthors = [
+      {
+        id: '1',
+        name: 'Alex Johnson',
+        email: 'alex@example.com',
+        bio: 'Full-stack developer with expertise in TypeScript and databases.',
+        avatar: avatarImageUrls[0], // Using uploaded avatar
+        role: 'admin', // Admin role
+      },
+      {
+        id: '2',
+        name: 'Sam Wilson',
+        email: 'sam@example.com',
+        bio: 'Frontend developer passionate about React and Next.js.',
+        avatar: avatarImageUrls[1], // Using uploaded avatar
+        role: 'author',
+      },
+      {
+        id: '3',
+        name: 'Taylor Reed',
+        email: 'taylor@example.com',
+        bio: 'TypeScript enthusiast and open source contributor.',
+        avatar: avatarImageUrls[2], // Using uploaded avatar
+        role: 'author',
+      },
+    ];
+
+    await db.insert(authors).values(sampleAuthors);
+    console.log(`✅ Successfully seeded ${sampleAuthors.length} authors`);
+    
+    // Insert sample posts with Cloudinary images and author references
     const samplePosts = [
       {
         id: '1',
@@ -62,7 +95,10 @@ npm install drizzle-orm drizzle-kit
 
 Drizzle ORM is a great choice for TypeScript projects that need a type-safe database layer.`,
         excerpt: 'Learn the basics of Drizzle ORM and how to set it up with Neon',
-        featuredImage: imageUrls[0],
+        featuredImage: postImageUrls[0],
+        tags: ['tutorial', 'database', 'typescript'],
+        authorId: '1', // References Alex Johnson (admin)
+        readTime: '8 min read',
       },
       {
         id: '2',
@@ -90,7 +126,10 @@ cd my-blog
 
 Next.js makes deployment easy with Vercel, Netlify, or any other platform that supports Node.js.`,
         excerpt: 'Step-by-step guide to creating a blog with Next.js and TypeScript',
-        featuredImage: imageUrls[1],
+        featuredImage: postImageUrls[1],
+        tags: ['nextjs', 'react', 'web development'],
+        authorId: '2', // References Sam Wilson
+        readTime: '12 min read',
       },
       {
         id: '3',
@@ -132,7 +171,10 @@ Enable strict mode in your tsconfig.json:
 
 Following these best practices will help you write more robust TypeScript code.`,
         excerpt: 'Essential tips and patterns for writing better TypeScript code',
-        featuredImage: imageUrls[2],
+        featuredImage: postImageUrls[2],
+        tags: ['typescript', 'programming', 'best practices'],
+        authorId: '3',
+        readTime: '10 min read',
       },
     ];
 
@@ -146,18 +188,18 @@ Following these best practices will help you write more robust TypeScript code.`
   process.exit(0);
 }
 
-// Function to upload placeholder images to Cloudinary
-async function uploadImagesToCloudinary(cloudinary: any): Promise<string[]> {
-  console.log('Uploading images to Cloudinary...');
+// Function to upload post images to Cloudinary
+async function uploadPostImagesToCloudinary(cloudinary: any): Promise<string[]> {
+  console.log('Uploading post images to Cloudinary...');
   
-  // Placeholder image URLs (you can replace these with your own images)
-  const placeholderImages = [
+  // Post image URLs from Unsplash
+  const postImages = [
     'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=450&fit=crop',
     'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=450&fit=crop',
     'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop'
   ];
 
-  const uploadPromises = placeholderImages.map(async (url, index) => {
+  const uploadPromises = postImages.map(async (url, index) => {
     try {
       // Fetch the image
       const response = await fetch(url);
@@ -178,12 +220,59 @@ async function uploadImagesToCloudinary(cloudinary: any): Promise<string[]> {
         ).end(buffer);
       });
 
-      console.log(`Uploaded image ${index + 1}: ${(result as any).secure_url}`);
+      console.log(`Uploaded post image ${index + 1}: ${(result as any).secure_url}`);
       return (result as any).secure_url;
     } catch (error) {
-      console.error(`Error uploading image ${index + 1}:`, error);
+      console.error(`Error uploading post image ${index + 1}:`, error);
       // Return a fallback URL if upload fails
       return `https://via.placeholder.com/800x450?text=Blog+Post+${index + 1}`;
+    }
+  });
+
+  return Promise.all(uploadPromises);
+}
+
+// Function to upload avatar images to Cloudinary
+async function uploadAvatarImagesToCloudinary(cloudinary: any): Promise<string[]> {
+  console.log('Uploading avatar images to Cloudinary...');
+  
+  // Avatar image URLs from Unsplash
+  const avatarImages = [
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face'
+  ];
+
+  const uploadPromises = avatarImages.map(async (url, index) => {
+    try {
+      // Fetch the image
+      const response = await fetch(url);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      
+      // Upload to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { 
+            folder: 'avatars',
+            public_id: `author-${index + 1}`,
+            resource_type: 'image',
+            transformation: [
+              { width: 200, height: 200, gravity: "face", crop: "fill" }
+            ]
+          },
+          (error: any, result: any) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(buffer);
+      });
+
+      console.log(`Uploaded avatar image ${index + 1}: ${(result as any).secure_url}`);
+      return (result as any).secure_url;
+    } catch (error) {
+      console.error(`Error uploading avatar image ${index + 1}:`, error);
+      // Return a fallback URL if upload fails
+      return `https://ui-avatars.com/api/?name=${['Alex', 'Sam', 'Taylor'][index]}&background=random`;
     }
   });
 
