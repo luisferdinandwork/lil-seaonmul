@@ -2,11 +2,16 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Edit, Trash2, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface Author {
@@ -21,10 +26,24 @@ interface Author {
 }
 
 export default function AuthorsPage() {
+  const router = useRouter();
   const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [authorToDelete, setAuthorToDelete] = useState<string | null>(null);
+  const [authorToEdit, setAuthorToEdit] = useState<Author | null>(null);
+  
+  // Form states
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    bio: '',
+    avatar: '',
+    role: 'author'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchAuthors();
@@ -46,6 +65,43 @@ export default function AuthorsPage() {
     }
   };
 
+  const handleUpdateAuthor = async () => {
+    if (!authorToEdit) return;
+    
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/authors/${authorToEdit.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password || undefined, // Only send password if provided
+          bio: formData.bio,
+          avatar: formData.avatar,
+          role: formData.role,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update author');
+      }
+      
+      toast.success('Author updated successfully');
+      setIsEditDialogOpen(false);
+      resetForm();
+      fetchAuthors();
+    } catch (error) {
+      console.error('Error updating author:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update author');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDeleteAuthor = async (id: string) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/authors/${id}`, {
@@ -62,6 +118,40 @@ export default function AuthorsPage() {
       console.error('Error deleting author:', error);
       toast.error('Failed to delete author');
     }
+  };
+
+  const openEditDialog = (author: Author) => {
+    setAuthorToEdit(author);
+    setFormData({
+      name: author.name,
+      email: author.email,
+      password: '',
+      bio: author.bio || '',
+      avatar: author.avatar || '',
+      role: author.role,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      bio: '',
+      avatar: '',
+      role: 'author'
+    });
+    setAuthorToEdit(null);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFormData(prev => ({ ...prev, role: value }));
   };
 
   if (loading) {
@@ -81,7 +171,10 @@ export default function AuthorsPage() {
             Manage your blog authors.
           </p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => router.push('/dashboard/authors/new')}
+        >
           <Plus className="h-4 w-4" />
           New Author
         </Button>
@@ -133,7 +226,11 @@ export default function AuthorsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openEditDialog(author)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -154,6 +251,93 @@ export default function AuthorsPage() {
           </Table>
         </div>
       )}
+
+      {/* Edit Author Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Author</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Author name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Author email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-password">Password (leave blank to keep current)</Label>
+              <Input
+                id="edit-password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="New password"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-role">Role</Label>
+              <Select value={formData.role} onValueChange={handleRoleChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="author">Author</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-bio">Bio</Label>
+              <Textarea
+                id="edit-bio"
+                name="bio"
+                value={formData.bio}
+                onChange={handleInputChange}
+                placeholder="Author bio"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-avatar">Avatar URL</Label>
+              <Input
+                id="edit-avatar"
+                name="avatar"
+                value={formData.avatar}
+                onChange={handleInputChange}
+                placeholder="Avatar URL"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpdateAuthor}
+              disabled={isSubmitting || !formData.name || !formData.email}
+            >
+              {isSubmitting ? 'Updating...' : 'Update Author'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

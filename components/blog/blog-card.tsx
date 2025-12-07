@@ -4,8 +4,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Calendar, Clock, User } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -48,16 +46,17 @@ export default function BlogCard({ post, className }: BlogCardProps) {
 
   return (
     <Link href={`/blog/${post.slug}`} className="block group">
-      <Card className={cn(
-        "h-full overflow-hidden transition-all duration-300 flex flex-col",
+      <article className={cn(
+        "h-full overflow-hidden rounded-xl transition-all duration-300 flex flex-col",
         "hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1",
-        "border-border/50 hover:border-primary/30",
+        "border border-border/50 hover:border-primary/30",
         "bg-card backdrop-blur-sm",
         "group-focus:ring-2 group-focus:ring-primary group-focus:ring-offset-2",
+        "relative",
         className
       )}>
-        {/* Featured Image */}
-        <CardHeader className="p-0 relative">
+        {/* Featured Image Header */}
+        <div className="relative">
           <div className="aspect-video w-full relative overflow-hidden bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/20">
             {post.featuredImage && !imageError ? (
               <>
@@ -105,9 +104,10 @@ export default function BlogCard({ post, className }: BlogCardProps) {
               </div>
             )}
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-5 sm:p-6 space-y-4">
+        {/* Content Section */}
+        <div className="p-5 sm:p-6 space-y-4 flex-1 flex flex-col">
           {/* Tags Row */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -165,14 +165,15 @@ export default function BlogCard({ post, className }: BlogCardProps) {
           </h3>
           
           {/* Excerpt */}
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 flex-1">
             {post.excerpt || post.content.substring(0, 150).replace(/<[^>]*>/g, '') + "..."}
           </p>
-        </CardContent>
+        </div>
 
-        <CardFooter className={cn(
+        {/* Footer Section */}
+        <div className={cn(
           "px-5 sm:px-6 pb-5 sm:pb-6 pt-0 mt-auto",
-          "flex items-center gap-2.5"
+          "flex items-center gap-2.5 border-t border-border/50"
         )}>
           {/* Author Info */}
           <div className="relative flex-shrink-0">
@@ -201,7 +202,7 @@ export default function BlogCard({ post, className }: BlogCardProps) {
             )}
           </div>
           
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 py-3">
             <p className={cn(
               "text-sm font-medium truncate",
               "group-hover:text-primary transition-colors duration-300"
@@ -217,7 +218,7 @@ export default function BlogCard({ post, className }: BlogCardProps) {
               </Badge>
             )}
           </div>
-        </CardFooter>
+        </div>
 
         {/* Decorative Corner Element */}
         <div className={cn(
@@ -227,7 +228,7 @@ export default function BlogCard({ post, className }: BlogCardProps) {
           "transition-opacity duration-500",
           "pointer-events-none"
         )} />
-      </Card>
+      </article>
     </Link>
   );
 }

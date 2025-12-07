@@ -1,7 +1,7 @@
 // app/dashboard/layout.tsx
 "use client"
 
-import DashboardSidebar from "@/components/dashboard-sidebar";
+import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import { useAuth } from "@/app/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
