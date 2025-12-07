@@ -3,17 +3,23 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, BookOpen, Mail, ShoppingBag } from "lucide-react";
+import { Menu, X, Home, BookOpen, ShoppingBag, LayoutDashboard, LogOut } from "lucide-react";
+import { useAuth } from "@/app/auth-context";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
+  };
 
   const navItems = [
     { href: "/", label: "Home", icon: <Home className="h-4 w-4" /> },
     { href: "/blog", label: "Blog", icon: <BookOpen className="h-4 w-4" /> },
-    { href: "/contact", label: "Contact", icon: <Mail className="h-4 w-4" /> },
     { 
       href: "https://shopee.co.id/litty.kitty10", 
       label: "Shop", 
@@ -23,7 +29,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-border">
+    <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -50,6 +56,33 @@ export function Navbar() {
                 <span>{item.label}</span>
               </Link>
             ))}
+            
+            {/* Auth Buttons */}
+            {user ? (
+              <>
+                <Button asChild size="sm" className="ml-2">
+                  <Link href="/dashboard" className="flex items-center space-x-1">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleLogout}
+                  className="ml-2"
+                  title="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Button asChild size="sm" className="ml-2">
+                <Link href="/login" className="flex items-center space-x-1">
+                  <span>Login</span>
+                </Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -77,6 +110,32 @@ export function Navbar() {
                   <span>{item.label}</span>
                 </Link>
               ))}
+              
+              {/* Mobile Auth Buttons */}
+              {user ? (
+                <>
+                  <Button asChild className="justify-start" onClick={() => setIsMenuOpen(false)}>
+                    <Link href="/dashboard" className="flex items-center space-x-2">
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span>Logout</span>
+                  </Button>
+                </>
+              ) : (
+                <Button asChild className="justify-start" onClick={() => setIsMenuOpen(false)}>
+                  <Link href="/login" className="flex items-center space-x-2">
+                    <span>Login</span>
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         )}

@@ -1,17 +1,19 @@
+// app/dashboard/page.tsx
 "use client"
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Calendar, Edit, Trash2, Plus, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { Calendar, Edit, Trash2, Plus, Eye, LogOut, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useAuth } from "@/app/auth-context";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Post interface remains the same
 interface Post {
   id: string;
   title: string;
@@ -26,26 +28,31 @@ interface Post {
 export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    content: "",
-    excerpt: "",
-    featuredImage: ""
-  });
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
+    // Redirect if not authenticated
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
     fetchPosts();
-  }, []);
+  }, [user, router]);
 
   const fetchPosts = async () => {
     try {
+      const token = localStorage.getItem('auth_token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
         cache: 'no-store',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
+      
       if (!res.ok) throw new Error('Failed to fetch posts');
       const data = await res.json();
       setPosts(data);
@@ -57,39 +64,14 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCreatePost = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) throw new Error('Failed to create post');
-      
-      toast.success('Post created successfully');
-      setIsCreateDialogOpen(false);
-      setFormData({
-        title: "",
-        slug: "",
-        content: "",
-        excerpt: "",
-        featuredImage: ""
-      });
-      fetchPosts();
-    } catch (error) {
-      console.error('Error creating post:', error);
-      toast.error('Failed to create post');
-    }
-  };
-
   const handleDeletePost = async (id: string) => {
     try {
+      const token = localStorage.getItem('auth_token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!res.ok) throw new Error('Failed to delete post');
@@ -104,157 +86,231 @@ export default function DashboardPage() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out successfully');
+    router.push('/login');
   };
+
+  if (!user) {
+    return (
+      <div className="text-center py-12">
+        <p>Redirecting to login...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-5xl px-4 py-12">
-        <div className="text-center">
-          <p>Loading posts...</p>
-        </div>
+      <div className="text-center py-12">
+        <p>Loading posts...</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-12">
-      <div className="flex justify-between items-center mb-12">
+    <div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Blog Dashboard</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Dashboard</h1>
           <p className="text-muted-foreground max-w-2xl">
-            Manage your blog posts here.
+            Welcome back, {user.name}! Overview of your blog posts and activity.
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+          <Link href="/dashboard/posts/new" className="w-full sm:w-auto">
+            <Button className="flex items-center gap-2 w-full">
               <Plus className="h-4 w-4" />
               New Post
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Post</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreatePost} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">Excerpt</Label>
-                <Input
-                  id="excerpt"
-                  name="excerpt"
-                  value={formData.excerpt}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="featuredImage">Featured Image URL</Label>
-                <Input
-                  id="featuredImage"
-                  name="featuredImage"
-                  value={formData.featuredImage}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleInputChange}
-                  rows={5}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">Create Post</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+          </Link>
+        </div>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{posts.length}</div>
+            <p className="text-xs text-muted-foreground">
+              +2 from last month
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{posts.length}</div>
+            <p className="text-xs text-muted-foreground">
+              All posts published
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">
+              Posts this week
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Posts Table */}
       {posts.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No blog posts available yet. Create your first post!</p>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No posts yet</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Create your first blog post to get started
+            </p>
+            <Link href="/dashboard/posts/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Post
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <Card key={post.id} className="overflow-hidden transition-all hover:shadow-lg">
-              <CardHeader className="p-0">
-                {post.featuredImage && (
-                  <div className="aspect-video w-full relative">
-                    <Image
-                      src={post.featuredImage}
-                      alt={post.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Posts</CardTitle>
+            <CardDescription>
+              Manage your blog posts and content
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Desktop Table View */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Slug</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {posts.map((post) => (
+                    <TableRow key={post.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex flex-col">
+                          <span>{post.title}</span>
+                          {post.excerpt && (
+                            <span className="text-sm text-muted-foreground truncate max-w-xs">
+                              {post.excerpt}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{post.slug}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Link href={`/blog/${post.slug}`}>
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/dashboard/edit/${post.slug}`}>
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setPostToDelete(post.id);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y">
+              {posts.map((post) => (
+                <div key={post.id} className="py-4 first:pt-0 last:pb-0">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-lg">{post.title}</h3>
+                    <Badge variant="outline">{post.slug}</Badge>
                   </div>
-                )}
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex items-center text-sm text-muted-foreground mb-2">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  {post.excerpt && (
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {post.excerpt}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
+                    <Calendar className="h-4 w-4" />
+                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <Link href={`/blog/${post.slug}`}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Button>
+                    </Link>
+                    <div className="flex gap-2">
+                      <Link href={`/dashboard/edit/${post.slug}`}>
+                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setPostToDelete(post.id);
+                          setIsDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">{post.title}</h3>
-                <p className="text-muted-foreground mb-4">
-                  {post.excerpt || post.content.substring(0, 100) + "..."}
-                </p>
-              </CardContent>
-              <CardFooter className="px-6 pb-6 pt-0 flex gap-2">
-                <Link href={`/blog/${post.slug}`} className="flex-1">
-                  <Button variant="outline" className="w-full justify-between bg-primary">
-                    View
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href={`/dashboard/edit/${post.id}`} className="flex-1">
-                  <Button variant="outline" className="w-full">
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                </Link>
-                <Button 
-                  variant="outline" 
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => {
-                    setPostToDelete(post.id);
-                    setIsDeleteDialogOpen(true);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
+      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
