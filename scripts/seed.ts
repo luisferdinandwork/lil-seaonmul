@@ -1,4 +1,6 @@
+// scripts/seed.ts
 import { config } from 'dotenv';
+import bcrypt from 'bcryptjs';
 
 // Load environment variables from .env file
 config({ path: '.env' });
@@ -23,12 +25,13 @@ async function seed() {
     await db.execute(sql`DROP TABLE IF EXISTS authors;`);
     console.log('Dropped existing tables');
     
-    // Create the authors table
+    // Create the authors table with password field
     await db.execute(sql`
       CREATE TABLE authors (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
         bio TEXT,
         avatar TEXT,
         role TEXT NOT NULL DEFAULT 'author',
@@ -56,12 +59,16 @@ async function seed() {
     `);
     console.log('Created posts table with new schema');
 
+    // Hash passwords for sample authors
+    const hashedPassword = await bcrypt.hash('password123', 10);
+
     // Insert sample authors
     const sampleAuthors = [
       {
         id: '1',
         name: 'Alex Johnson',
         email: 'alex@example.com',
+        password: hashedPassword,
         bio: 'Full-stack developer with expertise in TypeScript and databases.',
         avatar: 'https://example.com/avatars/alex.jpg',
         role: 'admin', // Admin role
@@ -70,6 +77,7 @@ async function seed() {
         id: '2',
         name: 'Sam Wilson',
         email: 'sam@example.com',
+        password: hashedPassword,
         bio: 'Frontend developer passionate about React and Next.js.',
         avatar: 'https://example.com/avatars/sam.jpg',
         role: 'author',
@@ -78,6 +86,7 @@ async function seed() {
         id: '3',
         name: 'Taylor Reed',
         email: 'taylor@example.com',
+        password: hashedPassword,
         bio: 'TypeScript enthusiast and open source contributor.',
         avatar: 'https://example.com/avatars/taylor.jpg',
         role: 'author',
@@ -126,6 +135,11 @@ async function seed() {
 
     await db.insert(posts).values(samplePosts);
     console.log(`✅ Successfully seeded ${samplePosts.length} posts`);
+    
+    console.log('🔑 Sample login credentials:');
+    console.log('Email: alex@example.com, Password: password123 (Admin)');
+    console.log('Email: sam@example.com, Password: password123 (Author)');
+    console.log('Email: taylor@example.com, Password: password123 (Author)');
   } catch (error) {
     console.error('❌ Error seeding database:', error);
     process.exit(1);

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // scripts/seed-images.ts
 import { config } from 'dotenv';
+import bcrypt from 'bcryptjs';
 
 // Load environment variables from .env file FIRST
 config({ path: '.env.local' });
@@ -37,12 +38,16 @@ async function seed() {
     const postImageUrls = await uploadPostImagesToCloudinary(cloudinary);
     const avatarImageUrls = await uploadAvatarImagesToCloudinary(cloudinary);
     
+    // Hash passwords for sample authors
+    const hashedPassword = await bcrypt.hash('password123', 10);
+    
     // Insert sample authors first
     const sampleAuthors = [
       {
         id: '1',
         name: 'Alex Johnson',
         email: 'alex@example.com',
+        password: hashedPassword,
         bio: 'Full-stack developer with expertise in TypeScript and databases.',
         avatar: avatarImageUrls[0], // Using uploaded avatar
         role: 'admin', // Admin role
@@ -51,6 +56,7 @@ async function seed() {
         id: '2',
         name: 'Sam Wilson',
         email: 'sam@example.com',
+        password: hashedPassword,
         bio: 'Frontend developer passionate about React and Next.js.',
         avatar: avatarImageUrls[1], // Using uploaded avatar
         role: 'author',
@@ -59,6 +65,7 @@ async function seed() {
         id: '3',
         name: 'Taylor Reed',
         email: 'taylor@example.com',
+        password: hashedPassword,
         bio: 'TypeScript enthusiast and open source contributor.',
         avatar: avatarImageUrls[2], // Using uploaded avatar
         role: 'author',
@@ -180,6 +187,11 @@ Following these best practices will help you write more robust TypeScript code.`
 
     await db.insert(posts).values(samplePosts);
     console.log(`✅ Successfully seeded ${samplePosts.length} posts with images`);
+    
+    console.log('🔑 Sample login credentials:');
+    console.log('Email: alex@example.com, Password: password123 (Admin)');
+    console.log('Email: sam@example.com, Password: password123 (Author)');
+    console.log('Email: taylor@example.com, Password: password123 (Author)');
   } catch (error) {
     console.error('❌ Error seeding database:', error);
     process.exit(1);

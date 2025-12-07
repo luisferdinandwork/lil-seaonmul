@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { Suspense } from "react"
 import "./globals.css"
 import { Navbar } from "@/components/navbar"
+import { AuthProvider } from "@/app/auth-context"
 
 export const metadata: Metadata = {
   title: {
@@ -51,10 +52,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Navbar />
-        <main className="min-h-screen">
-          <Suspense fallback={null}>{children}</Suspense>
-        </main>
+        <AuthProvider>
+          <Navbar />
+          <main className="min-h-screen">
+            <Suspense fallback={null}>{children}</Suspense>
+          </main>
+        </AuthProvider>
       </body>
     </html>
   )

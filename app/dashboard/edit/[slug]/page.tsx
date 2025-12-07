@@ -14,6 +14,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ImageUpload from "@/components/ImageUpload";
 import dynamic from "next/dynamic";
+import TagsInput from "@/components/dashboard/TagsInput";
 
 interface PostFormData {
   title: string;
@@ -21,6 +22,7 @@ interface PostFormData {
   content: string;
   excerpt: string;
   featuredImage: string;
+  tags: string[];
 }
 
 const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
@@ -42,17 +44,36 @@ const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
-  const slug = params.slug as string; // Now using slug instead of ID
+  const slug = params.slug as string;
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [popularTags, setPopularTags] = useState<{ tag: string; count: number }[]>([]);
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
     slug: "",
     content: "",
     excerpt: "",
-    featuredImage: ""
+    featuredImage: "",
+    tags: []
   });
+
+  // Fetch popular tags
+  useEffect(() => {
+    const fetchPopularTags = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tags/popular`);
+        if (res.ok) {
+          const data = await res.json();
+          setPopularTags(data);
+        }
+      } catch (error) {
+        console.error('Error fetching popular tags:', error);
+      }
+    };
+
+    fetchPopularTags();
+  }, []);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -60,13 +81,16 @@ export default function EditPostPage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${slug}`);
         if (!res.ok) throw new Error('Failed to fetch post');
         
-        const post = await res.json();
+        const data = await res.json();
+        const post = data.post; // The post is now nested in the response
+        
         setFormData({
           title: post.title,
           slug: post.slug,
           content: post.content,
           excerpt: post.excerpt || "",
-          featuredImage: post.featuredImage || ""
+          featuredImage: post.featuredImage || "",
+          tags: post.tags || []
         });
       } catch (error) {
         console.error('Error fetching post:', error);
@@ -94,10 +118,12 @@ export default function EditPostPage() {
     setSaving(true);
 
     try {
+      const token = localStorage.getItem('auth_token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${slug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(formData),
       });
@@ -129,6 +155,10 @@ export default function EditPostPage() {
 
   const handleContentChange = (value: string) => {
     setFormData(prev => ({ ...prev, content: value }));
+  };
+
+  const handleTagsChange = (tags: string[]) => {
+    setFormData(prev => ({ ...prev, tags }));
   };
 
   const generateSlug = (title: string) => {
@@ -212,6 +242,18 @@ export default function EditPostPage() {
               />
               <p className="text-sm text-muted-foreground">
                 A short summary of the post (optional).
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <TagsInput 
+                value={formData.tags} 
+                onChange={handleTagsChange}
+                popularTags={popularTags}
+              />
+              <p className="text-sm text-muted-foreground">
+                Add tags to categorize your post. Press Enter to add a tag.
               </p>
             </div>
             

@@ -1,7 +1,7 @@
 // app/dashboard/posts/new/page.tsx
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import Link from "next/link";
 import Image from "next/image";
 import ImageUpload from "@/components/ImageUpload";
 import dynamic from "next/dynamic";
+import { useAuth } from "@/app/auth-context";
+import TagsInput from "@/components/dashboard/TagsInput";
 
 interface PostFormData {
   title: string;
@@ -21,6 +23,8 @@ interface PostFormData {
   content: string;
   excerpt: string;
   featuredImage: string;
+  authorId: string;
+  tags: string[];
 }
 
 const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
@@ -41,20 +45,48 @@ const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
 
 export default function NewPostPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [popularTags, setPopularTags] = useState<{ tag: string; count: number }[]>([]);
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
     slug: "",
     content: "",
     excerpt: "",
-    featuredImage: ""
+    featuredImage: "",
+    authorId: "",
+    tags: []
   });
+
+  // Set authorId when user is available
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({ ...prev, authorId: user.id }));
+    }
+  }, [user]);
+
+  // Fetch popular tags
+  useEffect(() => {
+    const fetchPopularTags = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tags/popular`);
+        if (res.ok) {
+          const data = await res.json();
+          setPopularTags(data);
+        }
+      } catch (error) {
+        console.error('Error fetching popular tags:', error);
+      }
+    };
+
+    fetchPopularTags();
+  }, []);
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate before submitting
-    if (!formData.title || !formData.slug || !formData.content) {
+    if (!formData.title || !formData.slug || !formData.content || !formData.authorId) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -62,10 +94,12 @@ export default function NewPostPage() {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem('auth_token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(formData),
       });
@@ -99,6 +133,10 @@ export default function NewPostPage() {
     setFormData(prev => ({ ...prev, content: value }));
   };
 
+  const handleTagsChange = (tags: string[]) => {
+    setFormData(prev => ({ ...prev, tags }));
+  };
+
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
@@ -116,8 +154,21 @@ export default function NewPostPage() {
     }));
   };
 
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <p>You must be logged in to create a post.</p>
+          <Link href="/login" className="mt-4 inline-block">
+            <Button>Login</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-12">
+    <div className="container mx-auto px-4 py-12">
       <div className="mb-8">
         <Link href="/dashboard">
           <Button variant="outline" className="mb-4">
@@ -174,6 +225,18 @@ export default function NewPostPage() {
             </div>
             
             <div className="space-y-2">
+              <Label>Tags</Label>
+              <TagsInput 
+                value={formData.tags} 
+                onChange={handleTagsChange}
+                popularTags={popularTags}
+              />
+              <p className="text-sm text-muted-foreground">
+                Add tags to categorize your post. Press Enter to add a tag.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
               <Label>Featured Image</Label>
               <ImageUpload onImageUpload={handleImageUpload} currentImage={formData.featuredImage} />
               {formData.featuredImage && (
@@ -201,6 +264,13 @@ export default function NewPostPage() {
                 placeholder="Write your post content here..."
               />
             </div>
+            
+            {/* Hidden input for authorId */}
+            <input 
+              type="hidden" 
+              name="authorId" 
+              value={formData.authorId} 
+            />
             
             <div className="flex justify-end gap-2">
               <Link href="/dashboard">

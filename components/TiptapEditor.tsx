@@ -36,7 +36,17 @@ const TiptapEditor = ({ value, onChange, placeholder = "Write your content here.
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Configure list extensions properly
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+      }),
       Link.configure({
         openOnClick: false,
       }),

@@ -1,7 +1,8 @@
+// app/api/posts/[slug]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts, authors } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, not, and, or, arrayContains } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
@@ -14,7 +15,8 @@ export async function GET(
       return NextResponse.json({ error: 'Slug parameter is required' }, { status: 400 });
     }
     
-    const post = await db
+    // Get the post with author details
+    const postResult = await db
       .select({
         id: posts.id,
         title: posts.title,
@@ -41,11 +43,76 @@ export async function GET(
       .where(eq(posts.slug, slug))
       .limit(1);
     
-    if (post.length === 0) {
+    if (postResult.length === 0) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
     
-    return NextResponse.json(post[0]);
+    const currentPost = postResult[0];
+    
+    // Get related posts (posts with similar tags)
+    // Only if currentPost has tags
+    let relatedPosts: { id: string; title: string; slug: string; excerpt: string | null; featuredImage: string | null; tags: string[] | null; author: { id: string; name: string; avatar: string | null; } | null; createdAt: Date; }[] = [];
+    if (currentPost.tags && currentPost.tags.length > 0) {
+      relatedPosts = await db
+        .select({
+          id: posts.id,
+          title: posts.title,
+          slug: posts.slug,
+          excerpt: posts.excerpt,
+          featuredImage: posts.featuredImage,
+          tags: posts.tags,
+          author: {
+            id: authors.id,
+            name: authors.name,
+            avatar: authors.avatar,
+          },
+          createdAt: posts.createdAt,
+        })
+        .from(posts)
+        .leftJoin(authors, eq(posts.authorId, authors.id))
+        .where(
+          and(
+            not(eq(posts.id, currentPost.id)),
+            // Find posts that have at least one tag in common with the current post
+            or(
+              ...currentPost.tags.map((tag: string) => 
+                arrayContains(posts.tags, [tag])
+              )
+            )
+          )
+        )
+        .limit(3);
+    }
+    
+    // Get popular tags using a different approach
+    // First, get all posts with their tags
+    const allPosts = await db
+      .select({
+        tags: posts.tags
+      })
+      .from(posts);
+    
+    // Count tag occurrences
+    const tagCounts: Record<string, number> = {};
+    allPosts.forEach(post => {
+      if (post.tags && Array.isArray(post.tags)) {
+        post.tags.forEach(tag => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
+      }
+    });
+    
+    // Convert to array and sort by count
+    const popularTags = Object.entries(tagCounts)
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+    
+    return NextResponse.json({
+      post: currentPost,
+      relatedPosts,
+      popularTags,
+    });
   } catch (error) {
     console.error('Error fetching post:', error);
     return NextResponse.json(
