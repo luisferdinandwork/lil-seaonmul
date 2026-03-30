@@ -480,3 +480,11 @@
 .dark .tiptap-content li {
   color: var(--foreground);
 }
+
+.ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: oklch(0.7 0 0 / 40%);   /* matches --muted-foreground */
+    pointer-events: none;
+    height: 0;
+  }

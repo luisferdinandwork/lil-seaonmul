@@ -1,3 +1,4 @@
+// sections/home/contact-form.tsx
 "use client"
 
 import type React from "react"
@@ -7,7 +8,28 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import Link from "next/link"
-import { MapPin, Clock, Mail, Phone } from "lucide-react"
+import { Mail, Phone, ShoppingBag, MessageCircle, Clock } from "lucide-react"
+
+const quickLinks = [
+  {
+    icon: ShoppingBag,
+    emoji: "🛍️",
+    label: "Shopee Store",
+    desc: "Browse & buy our full collection",
+    href: "https://shopee.co.id/litty.kitty10",
+    cta: "Visit Store",
+    highlight: true,
+  },
+  {
+    icon: MessageCircle,
+    emoji: "💬",
+    label: "WhatsApp",
+    desc: "Chat for quick replies & custom orders",
+    href: "https://wa.me/6282154359140?text=Hi%20Lil.Seonmul%21%20I%27d%20like%20to%20learn%20more.",
+    cta: "Chat Now",
+    highlight: false,
+  },
+]
 
 export function ContactForm() {
   const [loading, setLoading] = useState(false)
@@ -28,16 +50,14 @@ export function ContactForm() {
         body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error("Failed to submit")
-      
-      toast.success("Message sent!", {
-        description: "Thanks for reaching out. We will respond shortly.",
+      toast.success("Message sent! 🎀", {
+        description: "Thanks for reaching out. We'll respond shortly.",
         duration: 5000,
       })
-      
-      e.currentTarget.reset()
-    } catch (err) {
+      ;(e.target as HTMLFormElement).reset()
+    } catch {
       toast.error("Something went wrong", {
-        description: "Please try again or use WhatsApp for quicker replies.",
+        description: "Please try WhatsApp for quicker replies!",
         duration: 7000,
       })
     } finally {
@@ -45,112 +65,140 @@ export function ContactForm() {
     }
   }
 
-  const waLink = "https://wa.me/6282154359140?text=Hi%20Lil.Seonmul%21%20I%27d%20like%20to%20learn%20more."
-
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      {/* Contact Form */}
-      <div className="rounded-xl border bg-card p-6 ring-1 ring-border">
-        <h2 className="text-2xl font-bold mb-6">Send us a message</h2>
-        <form onSubmit={onSubmit} className="grid gap-4">
-          <div className="grid gap-2">
-            <label htmlFor="name" className="text-sm font-medium">
-              Name
-            </label>
-            <Input id="name" name="name" placeholder="Your name" required />
-          </div>
+    <section aria-labelledby="contact-heading" className="w-full">
+      {/* Section header */}
+      <div className="text-center mb-10">
+        <p className="text-xs tracking-[0.2em] uppercase text-primary font-semibold mb-2">Get in touch</p>
+        <h2 id="contact-heading" className="text-3xl font-bold text-foreground sm:text-4xl">
+          Let&apos;s Connect! 🌷
+        </h2>
+        <p className="mt-3 text-muted-foreground text-sm sm:text-base max-w-md mx-auto">
+          Questions, custom orders, or just want to say hi? We&apos;d love to hear from you.
+        </p>
+      </div>
 
-          <div className="grid gap-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              Email
-            </label>
-            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
-          </div>
+      <div className="grid gap-6 lg:grid-cols-2">
 
-          <div className="grid gap-2">
-            <label htmlFor="message" className="text-sm font-medium">
-              Message
-            </label>
-            <Textarea id="message" name="message" placeholder="Tell us what you need" required />
-          </div>
+        {/* Quick Links */}
+        <div className="flex flex-col gap-4">
+          {quickLinks.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group flex items-center gap-4 rounded-2xl border p-5 transition-all duration-300 hover:scale-[1.01] hover:shadow-md ${
+                item.highlight
+                  ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:shadow-primary/15"
+                  : "border-border bg-card hover:border-border/80"
+              }`}
+            >
+              <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+                item.highlight ? "bg-primary/15" : "bg-secondary"
+              }`}>
+                {item.emoji}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-foreground text-sm">{item.label}</p>
+                <p className="text-muted-foreground text-xs mt-0.5 truncate">{item.desc}</p>
+              </div>
+              <span className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+                item.highlight
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground group-hover:bg-primary/10 group-hover:text-primary"
+              }`}>
+                {item.cta}
+              </span>
+            </Link>
+          ))}
 
-          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+          {/* Contact details */}
+          <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+            <h3 className="font-semibold text-sm text-foreground">Other ways to reach us</h3>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Mail className="w-4 h-4 text-primary shrink-0" />
+              <span>hello@lilseonmul.com</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Phone className="w-4 h-4 text-primary shrink-0" />
+              <span>+62 821 5435 9140</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Clock className="w-4 h-4 text-primary shrink-0" />
+              <span>Mon–Sat, 9AM – 6PM WIB</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Form */}
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h3 className="text-lg font-semibold mb-5 text-foreground">Send us a message</h3>
+          <form onSubmit={onSubmit} className="grid gap-4">
+            <div className="grid gap-1.5">
+              <label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Your Name
+              </label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="e.g. Budi Santoso"
+                required
+                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20"
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Email Address
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20"
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="message" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Message
+              </label>
+              <Textarea
+                id="message"
+                name="message"
+                placeholder="Ask about products, custom orders, or anything else 🌸"
+                required
+                rows={4}
+                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20 resize-none"
+              />
+            </div>
+
             <Button
               type="submit"
               disabled={loading}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl py-5 text-sm font-semibold shadow-md shadow-primary/20 hover:scale-[1.01] transition-all"
             >
-              {loading ? "Sending…" : "Send message"}
+              {loading ? "Sending… 🌸" : "Send Message 💌"}
             </Button>
-            <Link
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-center text-sm underline underline-offset-4 text-foreground/80 hover:text-foreground"
-              aria-label="Contact on WhatsApp"
-            >
-              Prefer WhatsApp? Tap here.
-            </Link>
-          </div>
-        </form>
-      </div>
 
-      {/* Map and Contact Info */}
-      <div className="space-y-6">
-        {/* Google Maps Embed */}
-        <div className="rounded-xl overflow-hidden border border-border h-80">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.521260318288!2d106.81603531531584!3d-6.194741395496371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5d2e764b11d%3A0x3d2ad6e79e0bef9e!2sJakarta%2C%20Indonesia!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Google Maps location of Lil.Seonmul"
-          ></iframe>
+            <p className="text-center text-xs text-muted-foreground">
+              Prefer instant replies?{" "}
+              <Link
+                href="https://wa.me/6282154359140?text=Hi%20Lil.Seonmul%21"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2 hover:text-primary/80"
+              >
+                Message us on WhatsApp
+              </Link>
+            </p>
+          </form>
         </div>
 
-        {/* Contact Information */}
-        <div className="rounded-xl border bg-card p-6 ring-1 ring-border">
-          <h2 className="text-2xl font-bold mb-4">Visit our store</h2>
-          
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium">Address</h3>
-                <p className="text-muted-foreground">123 Soft Pastel Street, Jakarta, Indonesia 12345</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium">Opening Hours</h3>
-                <p className="text-muted-foreground">Monday - Saturday: 9AM - 6PM</p>
-                <p className="text-muted-foreground">Sunday: Closed</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <Mail className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium">Email</h3>
-                <p className="text-muted-foreground">hello@lilseonmul.com</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <Phone className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium">Phone</h3>
-                <p className="text-muted-foreground">+62 821 5435 9140</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
+    </section>
   )
 }

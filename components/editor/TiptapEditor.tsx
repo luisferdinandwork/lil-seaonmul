@@ -19,6 +19,7 @@ interface TiptapEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   minHeight?: number;
+  maxHeight?: number;
 }
 
 export default function TiptapEditor({
@@ -26,6 +27,7 @@ export default function TiptapEditor({
   onChange,
   placeholder = "Start writing your post…",
   minHeight = 520,
+  maxHeight = 640,
 }: TiptapEditorProps) {
   const [uploading, setUploading] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -47,7 +49,7 @@ export default function TiptapEditor({
       }),
       TiptapLink.configure({
         openOnClick: false,
-        HTMLAttributes: { class: "text-blue-500 underline cursor-pointer" },
+        HTMLAttributes: { class: "text-pink-500 underline cursor-pointer hover:text-pink-600" },
       }),
       Placeholder.configure({
         placeholder,
@@ -65,17 +67,13 @@ export default function TiptapEditor({
     immediatelyRender: false,
   });
 
-  // Sync external value changes (e.g. loading from API)
   useEffect(() => {
     if (!editor) return;
     const current = editor.getHTML();
-    // Only set if meaningfully different to avoid cursor jumps
     if (value && value !== current && value !== "<p></p>") {
       editor.commands.setContent(value);
     }
   }, [value, editor]);
-
-  // ── Image upload ────────────────────────────────────────────────────────────
 
   const uploadImage = async (file: File) => {
     if (!editor) return;
@@ -94,8 +92,6 @@ export default function TiptapEditor({
     }
   };
 
-  // ── Link helpers ────────────────────────────────────────────────────────────
-
   const applyLink = () => {
     if (!editor) return;
     const url = linkUrl.trim();
@@ -107,8 +103,6 @@ export default function TiptapEditor({
   };
 
   if (!editor) return null;
-
-  // ── Toolbar button helper ───────────────────────────────────────────────────
 
   const Btn = ({
     onClick, active = false, disabled = false, title, children,
@@ -124,145 +118,149 @@ export default function TiptapEditor({
       onMouseDown={e => { e.preventDefault(); onClick(); }}
       disabled={disabled}
       title={title}
-      className={`p-1.5 rounded-md transition-all ${
+      className={`p-1.5 rounded-lg transition-all duration-150 ${
         active
-          ? "bg-stone-800 text-white"
-          : "text-stone-500 hover:text-stone-900 hover:bg-stone-200"
+          ? "bg-pink-100 text-pink-700 shadow-sm"
+          : "text-stone-500 hover:text-stone-900 hover:bg-stone-100"
       } disabled:opacity-30`}
     >
       {children}
     </button>
   );
 
-  const Sep = () => <span className="w-px h-4 bg-stone-200 mx-1 flex-shrink-0 self-center" />;
+  const Sep = () => <span className="w-px h-4 bg-stone-200/70 mx-1 flex-shrink-0 self-center" />;
 
   return (
-    <div className="border border-stone-200 rounded-2xl overflow-hidden bg-white">
-      {/* ── Toolbar ── */}
-      <div className="flex items-center gap-0.5 px-3 py-2.5 border-b border-stone-100 bg-stone-50/60 flex-wrap select-none tiptap-toolbar">
+    <>
+      {/* ── Floating Toolbar ── */}
+      <div className="sticky top-[3.5rem] z-20 bg-white/85 backdrop-blur-xl border-x border-t border-stone-200 rounded-t-2xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] transition-shadow duration-200">
+        <div className="flex items-center gap-0.5 px-3 py-2 flex-wrap select-none tiptap-toolbar">
 
-        {/* History */}
-        <Btn onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()} title="Undo">
-          <Undo className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()} title="Redo">
-          <Redo className="w-3.5 h-3.5" />
-        </Btn>
-
-        <Sep />
-
-        {/* Headings */}
-        <Btn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          active={editor.isActive("heading", { level: 1 })} title="Heading 1">
-          <Heading1 className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          active={editor.isActive("heading", { level: 2 })} title="Heading 2">
-          <Heading2 className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          active={editor.isActive("heading", { level: 3 })} title="Heading 3">
-          <Heading3 className="w-3.5 h-3.5" />
-        </Btn>
-
-        <Sep />
-
-        {/* Inline marks */}
-        <Btn onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive("bold")} title="Bold">
-          <Bold className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive("italic")} title="Italic">
-          <Italic className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive("strike")} title="Strikethrough">
-          <Strikethrough className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleCode().run()}
-          active={editor.isActive("code")} title="Inline code">
-          <Code className="w-3.5 h-3.5" />
-        </Btn>
-
-        <Sep />
-
-        {/* Lists */}
-        <Btn onClick={() => editor.chain().focus().toggleBulletList().run()}
-          active={editor.isActive("bulletList")} title="Bullet list">
-          <List className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          active={editor.isActive("orderedList")} title="Numbered list">
-          <ListOrdered className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          active={editor.isActive("blockquote")} title="Blockquote">
-          <Quote className="w-3.5 h-3.5" />
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          title="Horizontal rule">
-          <Minus className="w-3.5 h-3.5" />
-        </Btn>
-
-        <Sep />
-
-        {/* Link */}
-        <div className="relative">
-          <Btn onClick={() => {
-            if (editor.isActive("link")) {
-              editor.chain().focus().unsetLink().run();
-            } else {
-              setShowLinkInput(v => !v);
-              setTimeout(() => linkRef.current?.focus(), 50);
-            }
-          }} active={editor.isActive("link")} title="Link">
-            {editor.isActive("link") ? <Unlink className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+          {/* History */}
+          <Btn onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()} title="Undo">
+            <Undo className="w-3.5 h-3.5" />
           </Btn>
-          {showLinkInput && (
-            <div className="absolute top-full left-0 mt-1 z-20 bg-white border border-stone-200 rounded-xl shadow-lg p-2 flex gap-1.5 min-w-[240px]">
-              <input
-                ref={linkRef}
-                type="url"
-                value={linkUrl}
-                onChange={e => setLinkUrl(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") applyLink(); if (e.key === "Escape") setShowLinkInput(false); }}
-                placeholder="https://..."
-                className="flex-1 text-xs px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:ring-2 focus:ring-stone-300"
-              />
-              <button type="button" onClick={applyLink}
-                className="text-xs px-2.5 py-1.5 bg-stone-900 text-white rounded-lg hover:bg-stone-800 font-medium">
-                Add
-              </button>
-            </div>
-          )}
+          <Btn onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()} title="Redo">
+            <Redo className="w-3.5 h-3.5" />
+          </Btn>
+
+          <Sep />
+
+          {/* Headings */}
+          <Btn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            active={editor.isActive("heading", { level: 1 })} title="Heading 1">
+            <Heading1 className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            active={editor.isActive("heading", { level: 2 })} title="Heading 2">
+            <Heading2 className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            active={editor.isActive("heading", { level: 3 })} title="Heading 3">
+            <Heading3 className="w-3.5 h-3.5" />
+          </Btn>
+
+          <Sep />
+
+          {/* Inline marks */}
+          <Btn onClick={() => editor.chain().focus().toggleBold().run()}
+            active={editor.isActive("bold")} title="Bold">
+            <Bold className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().toggleItalic().run()}
+            active={editor.isActive("italic")} title="Italic">
+            <Italic className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().toggleStrike().run()}
+            active={editor.isActive("strike")} title="Strikethrough">
+            <Strikethrough className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().toggleCode().run()}
+            active={editor.isActive("code")} title="Inline code">
+            <Code className="w-3.5 h-3.5" />
+          </Btn>
+
+          <Sep />
+
+          {/* Lists */}
+          <Btn onClick={() => editor.chain().focus().toggleBulletList().run()}
+            active={editor.isActive("bulletList")} title="Bullet list">
+            <List className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            active={editor.isActive("orderedList")} title="Numbered list">
+            <ListOrdered className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            active={editor.isActive("blockquote")} title="Blockquote">
+            <Quote className="w-3.5 h-3.5" />
+          </Btn>
+          <Btn onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            title="Horizontal rule">
+            <Minus className="w-3.5 h-3.5" />
+          </Btn>
+
+          <Sep />
+
+          {/* Link */}
+          <div className="relative">
+            <Btn onClick={() => {
+              if (editor.isActive("link")) {
+                editor.chain().focus().unsetLink().run();
+              } else {
+                setShowLinkInput(v => !v);
+                setTimeout(() => linkRef.current?.focus(), 50);
+              }
+            }} active={editor.isActive("link")} title="Link">
+              {editor.isActive("link") ? <Unlink className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+            </Btn>
+            {showLinkInput && (
+              <div className="absolute top-full left-0 mt-1 z-30 bg-white border border-stone-200 rounded-xl shadow-lg p-2 flex gap-1.5 min-w-[240px]">
+                <input
+                  ref={linkRef}
+                  type="url"
+                  value={linkUrl}
+                  onChange={e => setLinkUrl(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") applyLink(); if (e.key === "Escape") setShowLinkInput(false); }}
+                  placeholder="https://..."
+                  className="flex-1 text-xs px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-300"
+                />
+                <button type="button" onClick={applyLink}
+                  className="text-xs px-2.5 py-1.5 bg-pink-500 text-white rounded-lg hover:bg-pink-600 font-medium transition-colors">
+                  Add
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Image */}
+          <button
+            type="button"
+            onMouseDown={e => { e.preventDefault(); fileRef.current?.click(); }}
+            disabled={uploading}
+            title="Insert image"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-stone-500 hover:text-pink-600 hover:bg-pink-50 transition-all duration-150 text-xs font-medium disabled:opacity-40"
+          >
+            {uploading
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <ImagePlus className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{uploading ? "Uploading…" : "Image"}</span>
+          </button>
+
+          {/* Word count */}
+          <span className="ml-auto text-[10px] text-stone-400 pr-1 flex-shrink-0">
+            {editor.storage.characterCount?.words?.() ??
+              editor.getText().split(/\s+/).filter(Boolean).length} words
+          </span>
         </div>
-
-        {/* Image */}
-        <button
-          type="button"
-          onMouseDown={e => { e.preventDefault(); fileRef.current?.click(); }}
-          disabled={uploading}
-          title="Insert image"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-stone-500 hover:text-stone-900 hover:bg-stone-200 transition-all text-xs font-medium disabled:opacity-40"
-        >
-          {uploading
-            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            : <ImagePlus className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{uploading ? "Uploading…" : "Image"}</span>
-        </button>
-
-        {/* Word count */}
-        <span className="ml-auto text-[10px] text-stone-400 pr-1 flex-shrink-0">
-          {editor.storage.characterCount?.words?.() ??
-            editor.getText().split(/\s+/).filter(Boolean).length} words
-        </span>
       </div>
 
-      {/* ── Editor content ── */}
+      {/* ── Editor content (scrollable) ── */}
       <div
+        className="border-x border-stone-200 bg-white overflow-y-auto scroll-smooth"
+        style={{ maxHeight: `${maxHeight}px` }}
         onDragOver={e => e.preventDefault()}
         onDrop={async e => {
           e.preventDefault();
@@ -274,7 +272,7 @@ export default function TiptapEditor({
       </div>
 
       {/* ── Footer ── */}
-      <div className="px-6 py-2.5 border-t border-stone-50 flex items-center justify-between text-[10px] text-stone-400 bg-stone-50/40">
+      <div className="border border-stone-200 border-t-0 rounded-b-2xl flex items-center justify-between text-[10px] text-stone-400 bg-stone-50/60 px-6 py-2.5">
         <span>Click toolbar buttons to format · Drag &amp; drop images</span>
         <span>{editor.getText().length} chars</span>
       </div>
@@ -286,6 +284,6 @@ export default function TiptapEditor({
           if (f) await uploadImage(f);
           e.target.value = "";
         }} />
-    </div>
+    </>
   );
 }

@@ -22,7 +22,7 @@ interface PostForm {
   title: string;
   slug: string;
   excerpt: string;
-  content: string;       // stores HTML from Tiptap
+  content: string;
   featuredImage: string;
   tags: string[];
   authorId: string;
@@ -161,7 +161,7 @@ export default function PostEditor({ slug }: PostEditorProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-stone-300 animate-spin" />
+        <Loader2 className="w-8 h-8 text-pink-300 animate-spin" />
       </div>
     );
   }
@@ -173,7 +173,7 @@ export default function PostEditor({ slug }: PostEditorProps) {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 pl-4 pr-3 py-3 rounded-2xl shadow-lg text-sm font-medium border pointer-events-none ${
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 pl-4 pr-3 py-3 rounded-2xl shadow-lg text-sm font-medium border pointer-events-none animate-in slide-in-from-top-2 fade-in duration-300 ${
           toast.ok
             ? "bg-white text-emerald-700 border-emerald-100"
             : "bg-white text-red-600 border-red-100"
@@ -186,7 +186,7 @@ export default function PostEditor({ slug }: PostEditorProps) {
       )}
 
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-30 bg-white border-b border-stone-100 shadow-sm">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-stone-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="max-w-screen-xl mx-auto px-5 h-14 flex items-center gap-3">
           <button type="button" onClick={() => router.push("/dashboard/posts")}
             className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors flex-shrink-0">
@@ -197,20 +197,22 @@ export default function PostEditor({ slug }: PostEditorProps) {
             {isEditing ? (form.title || slug) : "New post"}
           </span>
 
-          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${
-            form.published ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-600"
+          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 transition-colors ${
+            form.published 
+              ? "bg-pink-50 text-pink-600 border border-pink-100" 
+              : "bg-stone-50 text-stone-500 border border-stone-100"
           }`}>
             {form.published ? "PUBLISHED" : "DRAFT"}
           </span>
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <button type="button" onClick={() => save(false)} disabled={saving}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-50">
+              className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-stone-300 transition-all duration-150 disabled:opacity-50">
               <Save className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Draft</span>
             </button>
             <button type="button" onClick={() => save(true)} disabled={saving}
-              className="flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white transition-colors disabled:opacity-50 shadow-sm">
+              className="flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-lg bg-pink-500 hover:bg-pink-600 text-white transition-all duration-150 disabled:opacity-50 shadow-sm shadow-pink-200">
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
               {form.published ? "Update" : "Publish"}
             </button>
@@ -237,7 +239,7 @@ export default function PostEditor({ slug }: PostEditorProps) {
               <span className="text-xs text-stone-300 flex-shrink-0">/blog/</span>
               <input type="text" value={form.slug}
                 onChange={e => { setSlugManual(true); field("slug", slugify(e.target.value)); }}
-                className="flex-1 text-xs text-stone-500 font-mono bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-stone-200 min-w-0" />
+                className="flex-1 text-xs text-stone-500 font-mono bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-pink-100 focus:border-pink-200 min-w-0 transition-all" />
             </div>
           </div>
 
@@ -273,18 +275,18 @@ export default function PostEditor({ slug }: PostEditorProps) {
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-2">
             <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3">Publish</p>
             <button type="button" onClick={() => save(true)} disabled={saving}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition-colors disabled:opacity-50 shadow-sm">
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold transition-all duration-150 disabled:opacity-50 shadow-sm shadow-pink-200">
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
               {form.published ? "Update & Publish" : "Publish Now"}
             </button>
             <button type="button" onClick={() => save(false)} disabled={saving}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-stone-200 text-stone-600 text-xs font-medium hover:bg-stone-50 transition-colors disabled:opacity-50">
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-pink-200 text-pink-600 text-xs font-medium hover:bg-pink-50 transition-all duration-150 disabled:opacity-50">
               <Save className="w-3.5 h-3.5" />
               Save as Draft
             </button>
             {form.published && (
               <button type="button" onClick={() => save(false)} disabled={saving}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-amber-600 text-xs font-medium hover:bg-amber-50 transition-colors">
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-stone-500 text-xs font-medium hover:bg-stone-50 transition-colors">
                 <EyeOff className="w-3.5 h-3.5" />
                 Unpublish
               </button>
@@ -295,7 +297,7 @@ export default function PostEditor({ slug }: PostEditorProps) {
           <Panel label="Author" icon={User}>
             <div className="relative">
               <select value={form.authorId} onChange={e => field("authorId", e.target.value)}
-                className="w-full appearance-none text-xs text-stone-700 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 pr-8 outline-none focus:ring-2 focus:ring-stone-200 cursor-pointer">
+                className="w-full appearance-none text-xs text-stone-700 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 pr-8 outline-none focus:ring-2 focus:ring-pink-100 focus:border-pink-200 cursor-pointer transition-all">
                 <option value="">Select author…</option>
                 {authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
@@ -318,11 +320,11 @@ export default function PostEditor({ slug }: PostEditorProps) {
             {form.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2.5">
                 {form.tags.map(t => (
-                  <span key={t} className="inline-flex items-center gap-1 text-[11px] bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full">
+                  <span key={t} className="inline-flex items-center gap-1 text-[11px] bg-pink-50 text-pink-600 border border-pink-100 px-2.5 py-1 rounded-full">
                     {t}
                     <button type="button"
                       onClick={() => field("tags", form.tags.filter(x => x !== t))}
-                      className="hover:text-red-500 transition-colors ml-0.5">
+                      className="hover:text-pink-800 transition-colors ml-0.5">
                       <X className="w-2.5 h-2.5" />
                     </button>
                   </span>
@@ -338,10 +340,10 @@ export default function PostEditor({ slug }: PostEditorProps) {
                     field("tags", form.tags.slice(0, -1));
                 }}
                 placeholder="Add tag…"
-                className="flex-1 text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-stone-200 placeholder:text-stone-300" />
+                className="flex-1 text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-pink-100 focus:border-pink-200 placeholder:text-stone-300 transition-all" />
               <button type="button" onClick={addTag}
-                className="p-2 rounded-lg bg-stone-100 hover:bg-stone-200 transition-colors flex-shrink-0">
-                <Plus className="w-3.5 h-3.5 text-stone-600" />
+                className="p-2 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-500 hover:text-pink-600 border border-pink-100 transition-all flex-shrink-0">
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
             <p className="text-[10px] text-stone-400 mt-1.5">Enter or comma to add</p>
@@ -352,7 +354,7 @@ export default function PostEditor({ slug }: PostEditorProps) {
             <input type="text" value={form.readTime}
               onChange={e => field("readTime", e.target.value)}
               placeholder="5 min read"
-              className="w-full text-xs bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-stone-200 placeholder:text-stone-300" />
+              className="w-full text-xs bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-pink-100 focus:border-pink-200 placeholder:text-stone-300 transition-all" />
             <p className="text-[10px] text-stone-400 mt-1.5">Estimated: ~{estRead} min</p>
           </Panel>
 
@@ -372,7 +374,7 @@ function Panel({ label, icon: Icon, children }: {
   return (
     <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
       <div className="flex items-center gap-1.5 mb-3">
-        {Icon && <Icon className="w-3.5 h-3.5 text-stone-400" />}
+        {Icon && <Icon className="w-3.5 h-3.5 text-pink-400" />}
         <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{label}</p>
       </div>
       {children}

@@ -95,7 +95,6 @@ export default function ImageUploader({
       )}
 
       {value ? (
-        /* ── Preview state ── */
         <div className={`relative group rounded-xl overflow-hidden bg-stone-100 ${aspectClass}`}>
           <Image
             src={value}
@@ -104,8 +103,7 @@ export default function ImageUploader({
             className="object-cover"
             unoptimized
           />
-          {/* Hover overlay */}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -118,7 +116,7 @@ export default function ImageUploader({
             <button
               type="button"
               onClick={handleRemove}
-              className="flex items-center gap-1.5 bg-red-500/90 hover:bg-red-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 bg-pink-500/90 hover:bg-pink-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
             >
               <X className="w-3.5 h-3.5" />
               Remove
@@ -126,9 +124,7 @@ export default function ImageUploader({
           </div>
         </div>
       ) : (
-        /* ── Empty state ── */
         <div className="rounded-xl border border-stone-200 overflow-hidden">
-          {/* Tabs */}
           <div className="flex border-b border-stone-100">
             {(["upload", "url"] as const).map((t) => (
               <button
@@ -137,7 +133,7 @@ export default function ImageUploader({
                 onClick={() => setTab(t)}
                 className={`flex-1 py-2 text-xs font-semibold transition-colors ${
                   tab === t
-                    ? "bg-white text-stone-800 border-b-2 border-stone-800"
+                    ? "bg-white text-pink-600 border-b-2 border-pink-400"
                     : "bg-stone-50 text-stone-400 hover:text-stone-600"
                 }`}
               >
@@ -153,18 +149,22 @@ export default function ImageUploader({
               onDrop={handleDrop}
               onClick={() => !uploading && fileInputRef.current?.click()}
               className={`flex flex-col items-center justify-center gap-3 px-6 py-8 cursor-pointer transition-colors ${
-                dragOver ? "bg-stone-100" : "bg-white hover:bg-stone-50"
+                dragOver ? "bg-pink-50" : "bg-white hover:bg-stone-50"
               }`}
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-8 h-8 text-stone-400 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-pink-400 animate-spin" />
                   <p className="text-xs text-stone-500 font-medium">Uploading...</p>
                 </>
               ) : (
                 <>
-                  <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center">
-                    <ImageIcon className="w-5 h-5 text-stone-400" />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    dragOver ? "bg-pink-100" : "bg-stone-100"
+                  }`}>
+                    <ImageIcon className={`w-5 h-5 transition-colors ${
+                      dragOver ? "text-pink-500" : "text-stone-400"
+                    }`} />
                   </div>
                   <div className="text-center">
                     <p className="text-sm font-semibold text-stone-700">
@@ -188,14 +188,14 @@ export default function ImageUploader({
                     onChange={(e) => setUrlInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-300 placeholder:text-stone-300"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-100 focus:border-pink-200 placeholder:text-stone-300 transition-all"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={handleUrlSubmit}
                   disabled={!urlInput.trim()}
-                  className="px-4 py-2.5 text-xs font-semibold bg-stone-900 text-white rounded-lg hover:bg-stone-800 disabled:opacity-40 transition-colors"
+                  className="px-4 py-2.5 text-xs font-semibold bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-40 transition-all"
                 >
                   Use
                 </button>
@@ -205,7 +205,6 @@ export default function ImageUploader({
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <p className="mt-2 text-xs text-red-500 flex items-center gap-1.5">
           <X className="w-3 h-3" />
@@ -213,7 +212,6 @@ export default function ImageUploader({
         </p>
       )}
 
-      {/* Hint */}
       {hint && !error && (
         <p className="mt-1.5 text-[11px] text-stone-400">{hint}</p>
       )}

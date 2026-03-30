@@ -1,6 +1,4 @@
 // components/editor/TiptapContent.tsx
-// Renders HTML from Tiptap with the same .tiptap-content styles used in global CSS.
-// Use this wherever you display saved post content.
 "use client";
 
 interface TiptapContentProps {

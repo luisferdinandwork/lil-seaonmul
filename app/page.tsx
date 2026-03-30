@@ -1,19 +1,33 @@
 // app/page.tsx
 "use client"
 
-import { Hero, Testimonials, MediaGallery, ContactForm } from "@/sections/home"
+import { Hero, WhyUs, MediaGallery, ContactForm } from "@/sections/home"
 import { FooterLinks } from "@/components/footer-links"
 
 export default function HomePage() {
   return (
-    <main className="flex flex-col">
+    <main className="flex flex-col bg-background">
       <Hero />
-      <div className="flex flex-col max-w-8xl mx-auto space-y-10 mt-20">
-        {/* <BlogPreview /> */}
+
+      {/* Floating section divider */}
+      <div className="flex items-center justify-center py-6 px-4">
+        <div className="flex items-center gap-3">
+          <span className="text-lg">🎀</span>
+          <div className="h-px w-16 bg-primary/30" />
+          <span className="text-xs tracking-[0.25em] uppercase text-muted-foreground font-medium">
+            Soft Pastel Gifts
+          </span>
+          <div className="h-px w-16 bg-primary/30" />
+          <span className="text-lg">🎀</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col w-full max-w-5xl mx-auto px-4 sm:px-6 gap-16 pb-20">
         <MediaGallery />
-        <Testimonials />
+        <WhyUs />
         <ContactForm />
       </div>
+
       <FooterLinks />
     </main>
   )
