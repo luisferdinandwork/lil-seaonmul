@@ -1,64 +1,76 @@
 // app/api/upload/route.ts
+// Required env vars: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 import { NextRequest, NextResponse } from 'next/server';
-import cloudinary from '@/lib/cloudinary';
+import { createHash } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get('file') as File | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Allowed: JPEG, PNG, WebP, GIF, AVIF' },
+        { status: 400 }
+      );
     }
 
-    // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size must be less than 10MB' }, { status: 400 });
+      return NextResponse.json({ error: 'File too large (max 10 MB)' }, { status: 400 });
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey    = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-    // Upload to Cloudinary with additional options
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        { 
-          resource_type: 'auto',
-          folder: 'blog-posts',
-          // Simplified transformations
-          transformation: [
-            { width: 1200, crop: 'limit' }, // Just limit width
-            { quality: 'auto:good' } // Use good quality instead of auto
-          ]
-        },
-        (error, result) => {
-          if (error) {
-            console.error('Cloudinary upload error:', error);
-            reject(error);
-          }
-          else resolve(result);
-        }
-      ).end(buffer);
-    });
+    if (!cloudName || !apiKey || !apiSecret) {
+      return NextResponse.json({ error: 'Cloudinary credentials not configured' }, { status: 500 });
+    }
 
-    return NextResponse.json({ 
-      url: result.secure_url,
-      publicId: result.public_id 
+    const timestamp = Math.round(Date.now() / 1000).toString();
+    const folder    = 'blog';
+
+    // Cloudinary signature = SHA1(alphabetically_sorted_params + api_secret)
+    // Params must be sorted alphabetically by key name
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
+    const signature = createHash('sha1')
+      .update(paramsToSign + apiSecret)
+      .digest('hex');
+
+    const uploadForm = new FormData();
+    uploadForm.append('file', file);
+    uploadForm.append('api_key', apiKey);
+    uploadForm.append('timestamp', timestamp);
+    uploadForm.append('signature', signature);
+    uploadForm.append('folder', folder);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: uploadForm }
+    );
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message ?? 'Cloudinary upload failed');
+    }
+
+    const data = await res.json();
+
+    return NextResponse.json({
+      url:      data.secure_url as string,
+      publicId: data.public_id  as string,
+      width:    data.width      as number,
+      height:   data.height     as number,
     });
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error('Upload error:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to upload image',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: error instanceof Error ? error.message : 'Upload failed' },
       { status: 500 }
     );
   }

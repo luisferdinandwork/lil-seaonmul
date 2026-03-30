@@ -1,3 +1,4 @@
+// app/api/posts/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts, authors } from '@/db/schema';
@@ -5,9 +6,6 @@ import { eq, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    // Check if database connection is working
-    await db.select({ count: sql`count(*)` }).from(posts).limit(1);
-    
     const allPosts = await db
       .select({
         id: posts.id,
@@ -27,17 +25,20 @@ export async function GET() {
           role: authors.role,
         },
         readTime: posts.readTime,
+        // ↓ These two were missing — the root cause of the dashboard bugs
+        published: posts.published,
+        viewCount: posts.viewCount,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
       })
       .from(posts)
       .leftJoin(authors, eq(posts.authorId, authors.id));
-    
+
     return NextResponse.json(allPosts);
   } catch (error) {
     console.error('Error fetching posts:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch posts', details: error instanceof Error ? error.message : 'Unknown error' }, 
+      { error: 'Failed to fetch posts', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -46,17 +47,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, slug, content, excerpt, featuredImage, tags, authorId, readTime } = body;
+    const { title, slug, content, excerpt, featuredImage, tags, authorId, readTime, published } = body;
 
-    // Validate required fields
     if (!title || !slug || !content || !authorId) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if slug already exists
     const existingPost = await db
       .select({ id: posts.id })
       .from(posts)
@@ -64,13 +60,9 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (existingPost.length > 0) {
-      return NextResponse.json(
-        { error: 'A post with this slug already exists' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'A post with this slug already exists' }, { status: 409 });
     }
 
-    // Check if author exists
     const existingAuthor = await db
       .select({ id: authors.id })
       .from(authors)
@@ -78,13 +70,9 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (existingAuthor.length === 0) {
-      return NextResponse.json(
-        { error: 'Author not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Author not found' }, { status: 404 });
     }
 
-    // Insert the new post
     const newPost = await db.insert(posts).values({
       id: crypto.randomUUID(),
       title,
@@ -95,9 +83,10 @@ export async function POST(request: NextRequest) {
       tags: tags || [],
       authorId,
       readTime: readTime || '5 min read',
+      published: published ?? false,
+      viewCount: 0,
     }).returning();
 
-    // Get the full post with author details
     const postWithAuthor = await db
       .select({
         id: posts.id,
@@ -117,6 +106,8 @@ export async function POST(request: NextRequest) {
           role: authors.role,
         },
         readTime: posts.readTime,
+        published: posts.published,
+        viewCount: posts.viewCount,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
       })
@@ -128,9 +119,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(postWithAuthor[0], { status: 201 });
   } catch (error) {
     console.error('Error creating post:', error);
-    return NextResponse.json(
-      { error: 'Failed to create post' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
   }
 }

@@ -4,7 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Suspense } from "react"
 import "./globals.css"
-import { Navbar } from "@/components/navbar"
+import { ConditionalNavbar } from "@/components/conditional-navbar"
 import { AuthProvider } from "@/app/auth-context"
 
 export const metadata: Metadata = {
@@ -53,7 +53,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <AuthProvider>
-          <Navbar />
+          <ConditionalNavbar />
           <main className="min-h-screen">
             <Suspense fallback={null}>{children}</Suspense>
           </main>

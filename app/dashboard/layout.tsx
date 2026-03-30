@@ -1,64 +1,44 @@
 // app/dashboard/layout.tsx
 "use client"
 
-import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
-import { useAuth } from "@/app/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
-import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import DashboardSidebar from "@/components/dashboard/dashboard-sidebar"
+import DashboardNavbar from "@/components/dashboard/dashboard-navbar"
+import { useAuth } from "@/app/auth-context"
+import { useRouter } from "next/navigation"
+import { useEffect, useState, useCallback } from "react"
+import { Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const { user, loading, logout } = useAuth();
-  const router = useRouter();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const { user, loading, logout } = useAuth()
+  const router = useRouter()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
-  // Handle mounting state for hydration
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    setIsMounted(true)
+  }, [])
 
   // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push("/login")
     }
-  }, [user, loading, router]);
+  }, [user, loading, router])
 
-  // Handle logout with callback
   const handleLogout = useCallback(() => {
-    logout();
-    router.push('/login');
-  }, [logout, router]);
+    logout()
+    router.push("/login")
+  }, [logout, router])
 
-  // Listen for logout event from sidebar
-  useEffect(() => {
-    const handleLogoutEvent = () => {
-      handleLogout();
-    };
-
-    window.addEventListener('logout', handleLogoutEvent);
-    return () => {
-      window.removeEventListener('logout', handleLogoutEvent);
-    };
-  }, [handleLogout]);
-
-  // Listen for sidebar collapse state changes
-  useEffect(() => {
-    const handleSidebarCollapse = (e: CustomEvent) => {
-      setIsSidebarCollapsed(e.detail.collapsed);
-    };
-
-    window.addEventListener('sidebar-collapse', handleSidebarCollapse as EventListener);
-    return () => {
-      window.removeEventListener('sidebar-collapse', handleSidebarCollapse as EventListener);
-    };
-  }, []);
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed((prev) => !prev)
+  }, [])
 
   // Loading state
   if (loading || !isMounted) {
@@ -69,54 +49,63 @@ export default function DashboardLayout({
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
-    );
+    )
   }
 
-  // Not authenticated
   if (!user) {
-    return null;
+    return null
   }
 
   return (
     <div className="flex min-h-screen bg-background">
-      <DashboardSidebar user={user} onLogout={handleLogout} />
-      
-      {/* Main Content Area */}
-      <main className={cn(
-        "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-        "w-full",
-        // Desktop margins based on sidebar state
-        isSidebarCollapsed ? "md:ml-20" : "md:ml-64",
-        // Mobile padding for fixed header
-        "pt-16 md:pt-0"
-      )}>
-        {/* Content Container */}
+      <DashboardSidebar
+        user={user}
+        isCollapsed={isSidebarCollapsed}
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileOpenChange={setIsMobileSidebarOpen}
+        onLogout={handleLogout}
+      />
+
+      {/* Main content area */}
+      <div
+        className={cn(
+          "flex-1 flex flex-col min-h-screen transition-[margin] duration-200 ease-in-out",
+          // Desktop: offset by sidebar width
+          isSidebarCollapsed ? "md:ml-16" : "md:ml-60",
+          // Mobile: offset by mobile header
+          "pt-14 md:pt-0"
+        )}
+      >
+        {/* Dashboard top navbar (desktop only — mobile uses the sidebar header) */}
+        <div className="sticky top-0 z-20">
+          <DashboardNavbar
+            onToggleSidebar={toggleSidebar}
+            isSidebarCollapsed={isSidebarCollapsed}
+          />
+        </div>
+
+        {/* Page content */}
         <div className="flex-1 overflow-y-auto">
-          <div className={cn(
-            "container mx-auto",
-            // Responsive padding
-            "px-4 sm:px-6 lg:px-8",
-            "py-6 sm:py-8 lg:py-10",
-            // Max width for better readability on large screens
-            "max-w-7xl"
-          )}>
+          <div
+            className={cn(
+              "mx-auto w-full max-w-7xl",
+              "px-4 sm:px-6 lg:px-8",
+              "py-6 sm:py-8"
+            )}
+          >
             {children}
           </div>
         </div>
 
-        {/* Optional Footer */}
+        {/* Footer */}
         <footer className="border-t bg-muted/30 mt-auto">
-          <div className={cn(
-            "container mx-auto",
-            "px-4 sm:px-6 lg:px-8",
-            "py-4"
-          )}>
-            <p className="text-xs sm:text-sm text-muted-foreground text-center">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+            <p className="text-xs text-muted-foreground text-center">
               © {new Date().getFullYear()} Blog Admin. All rights reserved.
             </p>
           </div>
         </footer>
-      </main>
+      </div>
     </div>
-  );
+  )
 }
