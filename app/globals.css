@@ -488,3 +488,58 @@
     pointer-events: none;
     height: 0;
   }
+
+  /* ─── ADD THESE BLOCKS TO YOUR globals.css ───────────────────────────────────
+   Place them at the bottom of your file, inside @layer base or after it.
+   Do NOT replace your existing CSS — just append these sections.
+──────────────────────────────────────────────────────────────────────────────── */
+
+/* ── Text selection highlight ─────────────────────────────────────────────── */
+::selection {
+  background-color: oklch(0.85 0.12 350 / 30%);
+  color: oklch(0.15 0.01 350);
+}
+
+/* ── Input / textarea caret color ─────────────────────────────────────────── */
+input,
+textarea,
+[contenteditable] {
+  caret-color: oklch(0.85 0.12 350);
+}
+
+/* ── Focus ring override (inputs, buttons, links) ─────────────────────────── */
+*:focus-visible {
+  outline: 2px solid oklch(0.85 0.12 350 / 60%);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar — Webkit (Chrome, Safari, Edge) ────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: oklch(0.85 0.12 350 / 40%);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.85 0.12 350 / 65%);
+}
+
+/* ── Scrollbar — Firefox ──────────────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.85 0.12 350 / 40%) transparent;
+}
+
+/* ── Utility: hide scrollbar but keep scroll ─────────────────────────────── */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

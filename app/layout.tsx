@@ -6,6 +6,7 @@ import { Suspense } from "react"
 import "./globals.css"
 import { ConditionalNavbar } from "@/components/conditional-navbar"
 import { AuthProvider } from "@/app/auth-context"
+import { FooterLinks } from "@/components/footer-links"
 
 export const metadata: Metadata = {
   title: {
@@ -58,6 +59,7 @@ export default function RootLayout({
             <Suspense fallback={null}>{children}</Suspense>
           </main>
         </AuthProvider>
+      <FooterLinks />
       </body>
     </html>
   )

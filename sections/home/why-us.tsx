@@ -1,92 +1,95 @@
 // sections/home/why-us.tsx
 "use client"
 
-import { Gift, Star, Truck, Heart, Smile, Package } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { ShoppingBag, Gift, Truck, Heart, Layers, Package, Star } from "lucide-react"
+
+const SHOPEE_URL = "https://shopee.co.id/litty.kitty10"
 
 const perks = [
   {
-    icon: Star,
-    emoji: "⭐",
-    title: "4.9 Shopee Rating",
-    desc: "Hundreds of happy buyers with glowing reviews. Quality you can trust.",
+    Icon: Star,
+    title: "Rating Shopee 4.9",
+    desc: "Ratusan ulasan positif dari pembeli. Kualitas yang bisa diandalkan.",
+    accent: false,
   },
   {
-    icon: Gift,
-    emoji: "🎀",
-    title: "Free Gift Wrapping",
-    desc: "Every order comes beautifully wrapped in our signature pastel packaging.",
+    Icon: Gift,
+    title: "Pembungkus Hadiah Gratis",
+    desc: "Setiap pesanan dibungkus cantik dengan kemasan pastel khas kami.",
+    accent: true,
   },
   {
-    icon: Truck,
-    emoji: "🚚",
-    title: "Fast Shipping",
-    desc: "Orders processed same day. Straight to your door, safe and secure.",
+    Icon: Truck,
+    title: "Pengiriman Cepat",
+    desc: "Diproses di hari yang sama. Aman sampai ke tangan kamu.",
+    accent: false,
   },
   {
-    icon: Heart,
-    emoji: "💖",
-    title: "Made with Love",
-    desc: "Curated with care by Lily — each piece chosen for its cuteness & charm.",
+    Icon: Heart,
+    title: "Dibuat dengan Cinta",
+    desc: "Dikurasi oleh Lily — setiap produk dipilih karena keunikan & pesonanya.",
+    accent: false,
   },
   {
-    icon: Smile,
-    emoji: "🐾",
-    title: "Labubu & Friends",
-    desc: "Keychains, plushies, blind boxes & more kawaii collectibles.",
+    Icon: Layers,
+    title: "Labubu & Teman-teman",
+    desc: "Gantungan kunci, boneka, blind box & kolektibel kawaii pilihan.",
+    accent: false,
   },
   {
-    icon: Package,
-    emoji: "📦",
-    title: "Ready Stock",
-    desc: "Most items are in stock & ready to ship. No long waits!",
+    Icon: Package,
+    title: "Stok Siap Kirim",
+    desc: "Sebagian besar produk tersedia dan siap dikirim — tanpa menunggu lama.",
+    accent: false,
   },
 ]
 
 export function WhyUs() {
-  const shopeeLink = "https://shopee.co.id/litty.kitty10"
-
   return (
     <section aria-labelledby="why-us-heading" className="w-full">
-      {/* Section header */}
-      <div className="text-center mb-10">
-        <p className="text-xs tracking-[0.2em] uppercase text-primary font-semibold mb-2">Why choose us</p>
-        <h2 id="why-us-heading" className="text-3xl font-bold text-foreground sm:text-4xl">
-          Why You&apos;ll Love Lil.Seonmul 🌸
+      <div className="text-center mb-8">
+        <p className="text-xs tracking-[0.2em] uppercase text-primary font-semibold mb-2">
+          Kenapa pilih kami
+        </p>
+        <h2 id="why-us-heading" className="text-2xl sm:text-3xl font-bold text-foreground">
+          Kenapa kamu akan suka Lil.Seonmul
         </h2>
-        <p className="mt-3 text-muted-foreground text-sm sm:text-base max-w-md mx-auto">
-          More than just cute — we deliver joy, quality, and a little bit of magic in every order.
+        <p className="mt-3 text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
+          Lebih dari sekadar lucu — kami menghadirkan kesenangan, kualitas, dan sedikit keajaiban di setiap pesanan.
         </p>
       </div>
 
-      {/* Cards grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {perks.map((perk) => (
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        {perks.map(({ Icon, title, desc, accent }) => (
           <div
-            key={perk.title}
-            className="group rounded-2xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
+            key={title}
+            className={`group rounded-2xl border p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+              accent
+                ? "border-primary/40 bg-primary/5 hover:shadow-primary/15"
+                : "border-border bg-card hover:border-primary/30 hover:shadow-primary/10"
+            }`}
           >
-            <div className="flex items-start gap-4">
-              <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-lg group-hover:bg-primary/20 transition-colors">
-                {perk.emoji}
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground text-sm mb-1">{perk.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{perk.desc}</p>
-              </div>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+              accent ? "bg-primary/15 group-hover:bg-primary/25" : "bg-secondary group-hover:bg-primary/10"
+            }`}>
+              <Icon className={`w-4 h-4 ${accent ? "text-primary" : "text-muted-foreground group-hover:text-primary"} transition-colors`} />
             </div>
+            <h3 className="font-semibold text-foreground text-sm mb-1 leading-snug">{title}</h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">{desc}</p>
           </div>
         ))}
       </div>
 
-      {/* CTA */}
-      <div className="mt-10 flex flex-col items-center gap-3 text-center">
-        <p className="text-sm text-muted-foreground">Ready to find your new favorite cute thing?</p>
-        <Link href={shopeeLink} target="_blank" rel="noopener noreferrer">
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 px-8 py-5 rounded-xl text-sm font-semibold shadow-md shadow-primary/20 hover:scale-105 transition-all">
-            🛍️ Browse Our Shopee Store
-          </Button>
+      <div className="mt-8 flex justify-center">
+        <Link
+          href={SHOPEE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-sm px-8 py-3.5 rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+        >
+          <ShoppingBag className="w-4 h-4" />
+          Jelajahi Toko Shopee Kami
         </Link>
       </div>
     </section>

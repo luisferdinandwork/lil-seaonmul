@@ -1,123 +1,154 @@
 // sections/home/hero.tsx
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { ShoppingBag, MessageCircle, Sparkles } from "lucide-react"
+import { ShoppingBag, MessageCircle, Star, ArrowRight } from "lucide-react"
+
+const SHOPEE_URL = "https://shopee.co.id/litty.kitty10"
+const WA_URL =
+  "https://wa.me/6282154359140?text=Halo%20Lil.Seonmul%21%20Saya%20tertarik%20dengan%20produk%20dan%20layanan%20kalian."
+
+type HeroSlide = { id: string; label: string; image: string; shopeeUrl: string }
 
 export function Hero() {
-  const waLink =
-    "https://wa.me/6282154359140?text=Hi%20Lil.Seonmul%21%20I%27m%20interested%20in%20your%20products%20%26%20services."
-  const shopeeLink = "https://shopee.co.id/litty.kitty10"
+  const [slides, setSlides] = useState<HeroSlide[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/home/hero-slides`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setSlides)
+      .catch(() => setSlides([]))
+  }, [])
 
   return (
     <header
-      aria-label="Lil.Seonmul hero banner"
-      className={cn(
-        "relative overflow-hidden",
-        "bg-[url('/soft-pastel-banner-for-lil-seonmul.jpg')]",
-        "bg-cover bg-center bg-no-repeat",
-        "min-h-[90vh] md:min-h-[80vh]",
-        "flex items-center"
-      )}
+      aria-label="Banner utama Lil.Seonmul"
+      className="relative overflow-hidden bg-background min-h-[92dvh] sm:min-h-[85dvh] flex flex-col"
     >
-      {/* Gradient overlay - softer than full black */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/65 via-black/50 to-black/30 z-0" />
+      {/* Background */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
+          alt=""
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      </div>
 
-      {/* Decorative blobs */}
-      <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-primary/20 blur-3xl z-0 animate-pulse" />
-      <div className="absolute bottom-20 left-10 w-48 h-48 rounded-full bg-pink-300/15 blur-2xl z-0" />
+      <div className="absolute top-0 right-0 w-[40vw] h-[40vw] max-w-[480px] max-h-[480px] rounded-full bg-primary/20 blur-3xl z-0 pointer-events-none" />
+      <div className="absolute bottom-16 left-0 w-[30vw] h-[30vw] max-w-[320px] max-h-[320px] rounded-full bg-pink-300/15 blur-2xl z-0 pointer-events-none" />
 
-      <div className="container mx-auto max-w-5xl px-4 py-16 md:py-20 relative z-10 w-full">
-        <div className="flex flex-col items-center gap-10 md:flex-row md:items-center md:justify-between">
+      {/* Konten utama */}
+      <div className="relative z-10 flex-1 flex flex-col justify-center max-w-5xl mx-auto w-full px-5 sm:px-8 py-20">
+        <div className="inline-flex items-center gap-2 self-start bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+          </span>
+          Tersedia di Shopee
+        </div>
 
-          {/* Left: Text content */}
-          <div className="flex flex-col items-center text-center md:items-start md:text-left max-w-xl">
-            {/* Badge */}
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1 text-xs font-medium text-white/90 mb-4">
-              <Sparkles className="w-3 h-3" />
-              Brand by Lily Octavia
-            </span>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight mb-5 max-w-lg">
+          Hadiah yang terasa seperti{" "}
+          <span className="text-primary drop-shadow-[0_0_30px_rgba(240,140,170,0.6)]">
+            pelukan hangat
+          </span>
+        </h1>
 
-            <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
-              Lil.<span className="text-primary drop-shadow-[0_0_20px_rgba(240,180,200,0.8)]">Seonmul</span>
-            </h1>
+        <p className="text-white/80 text-base sm:text-lg max-w-sm leading-relaxed mb-8">
+          Gantungan kunci lucu, hadiah pastel & mainan kawaii — dibuat dengan cinta oleh Lily Octavia.
+        </p>
 
-            <p className="mt-4 text-base text-white/85 sm:text-lg leading-relaxed">
-              Cute keychains, pastel gifts & kawaii toys — crafted for everyday delight ✨
-            </p>
-
-            {/* Stats row */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-5 mt-6 text-white/80">
-              <div className="text-center">
-                <p className="text-xl font-bold text-white">500+</p>
-                <p className="text-xs">Happy Buyers</p>
-              </div>
-              <div className="h-8 w-px bg-white/20 self-center" />
-              <div className="text-center">
-                <p className="text-xl font-bold text-white">4.9★</p>
-                <p className="text-xs">Shopee Rating</p>
-              </div>
-              <div className="h-8 w-px bg-white/20 self-center" />
-              <div className="text-center">
-                <p className="text-xl font-bold text-white">Free</p>
-                <p className="text-xs">Gift Wrapping</p>
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <Link href={shopeeLink} aria-label="Shop on Shopee" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                <Button
-                  className="w-full sm:w-auto gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-6 py-5 rounded-xl shadow-lg shadow-primary/30 transition-all hover:scale-105 hover:shadow-primary/50"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Shop on Shopee
-                </Button>
-              </Link>
-              <Link href={waLink} aria-label="Chat on WhatsApp" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto gap-2 border-white/40 text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 text-sm font-semibold px-6 py-5 rounded-xl transition-all hover:scale-105"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Chat on WhatsApp
-                </Button>
-              </Link>
-            </div>
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+            ))}
           </div>
+          <span className="text-white/70 text-sm">
+            <span className="text-white font-semibold">4.9</span> · 500+ pembeli senang
+          </span>
+        </div>
 
-          {/* Right: Logo card */}
-          <div
-            className={cn(
-              "w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 shrink-0",
-              "rounded-3xl bg-white/90 shadow-2xl shadow-black/30 backdrop-blur-sm",
-              "ring-1 ring-white/40 overflow-hidden",
-              "transition-all duration-500 hover:scale-105 hover:shadow-primary/30",
-              "animate-in fade-in slide-in-from-bottom-6 duration-700"
-            )}
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Link
+            href={SHOPEE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold text-sm px-7 py-3.5 rounded-2xl shadow-xl shadow-primary/30 hover:bg-primary/90 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
           >
-            <div className="relative w-full h-full">
-              <Image
-                src="/assets/logo.png"
-                alt="Lil.Seonmul logo"
-                fill
-                className="object-contain p-4"
-                sizes="(max-width: 768px) 192px, 256px"
-                priority
-              />
-            </div>
+            <ShoppingBag className="w-4 h-4" />
+            Belanja di Shopee
+            <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+          </Link>
+          <Link
+            href={WA_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/25 text-white font-semibold text-sm px-7 py-3.5 rounded-2xl hover:bg-white/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat di WhatsApp
+          </Link>
+        </div>
+      </div>
+
+      {/* Strip produk — dari database */}
+      {mounted && slides.length > 0 && (
+        <div className="relative z-10 w-full overflow-hidden">
+          <div className="flex gap-3 px-5 sm:px-8 pb-6 pt-2 overflow-x-auto scrollbar-none">
+            {slides.map((slide) => (
+              <Link
+                key={slide.id}
+                href={slide.shopeeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 group"
+              >
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 ring-1 ring-white/10 group-hover:ring-primary/60 transition-all duration-300">
+                  <Image
+                    src={slide.image}
+                    alt={slide.label}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="96px"
+                  />
+                </div>
+                <p className="text-[10px] text-white/60 text-center mt-1.5 group-hover:text-white/90 transition-colors">
+                  {slide.label}
+                </p>
+              </Link>
+            ))}
           </div>
-
+          <div className="absolute right-0 top-0 h-full w-16 bg-gradient-to-l from-black/40 to-transparent pointer-events-none" />
         </div>
+      )}
 
-        {/* Bottom scroll hint */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/50">
-          <div className="w-px h-8 bg-gradient-to-b from-white/0 to-white/40 animate-pulse" />
-          <p className="text-[10px] tracking-widest uppercase">Scroll</p>
+      {/* Loading skeleton untuk slide */}
+      {!mounted && (
+        <div className="relative z-10 w-full overflow-hidden">
+          <div className="flex gap-3 px-5 sm:px-8 pb-6 pt-2">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex-shrink-0 animate-pulse">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/10" />
+                <div className="w-14 h-2 bg-white/10 rounded mt-2 mx-auto" />
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+
+      <div className="absolute bottom-28 sm:bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-1.5 text-white/30 z-10 hidden sm:flex">
+        <div className="w-px h-8 bg-gradient-to-b from-transparent to-white/30 animate-pulse" />
+        <p className="text-[9px] tracking-[0.3em] uppercase">Gulir</p>
       </div>
     </header>
   )
