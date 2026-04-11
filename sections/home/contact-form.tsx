@@ -64,7 +64,7 @@ export function ContactForm() {
   }
 
   return (
-    <section aria-labelledby="contact-heading" className="w-full">
+    <section aria-labelledby="contact-heading" className="w-full overflow-hidden">
       <div className="text-center mb-10">
         <p className="text-xs tracking-[0.2em] uppercase text-primary font-semibold mb-2">Hubungi kami</p>
         <h2 id="contact-heading" className="text-2xl sm:text-3xl font-bold text-foreground">
@@ -75,17 +75,17 @@ export function ContactForm() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 min-w-0">
 
         {/* Tautan cepat + info kontak */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 min-w-0">
           {quickLinks.map(({ Icon, label, desc, href, cta, highlight }) => (
             <Link
               key={label}
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`group flex items-center gap-4 rounded-2xl border p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
+              className={`group flex items-center gap-4 rounded-2xl border p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 min-w-0 ${
                 highlight
                   ? "border-primary/40 bg-primary/5 hover:shadow-primary/15"
                   : "border-border bg-card hover:border-border/80"
@@ -111,17 +111,17 @@ export function ContactForm() {
             </Link>
           ))}
 
-          <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-5 space-y-4 min-w-0">
             <h3 className="font-semibold text-sm text-foreground">Cara lain menghubungi kami</h3>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground min-w-0">
               <Mail className="w-4 h-4 text-primary shrink-0" />
-              <span>hello@lilseonmul.com</span>
+              <span className="truncate">hello@lilseonmul.com</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground min-w-0">
               <Phone className="w-4 h-4 text-primary shrink-0" />
-              <span>+62 821 5435 9140</span>
+              <span className="truncate">+62 821 5435 9140</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground min-w-0">
               <Clock className="w-4 h-4 text-primary shrink-0" />
               <span>Senin–Sabtu, 09.00 – 18.00 WIB</span>
             </div>
@@ -129,22 +129,22 @@ export function ContactForm() {
         </div>
 
         {/* Formulir kontak */}
-        <div className="rounded-2xl border border-border bg-card p-6">
+        <div className="rounded-2xl border border-border bg-card p-6 min-w-0">
           <h3 className="text-base font-semibold mb-5 text-foreground">Kirim pesan</h3>
-          <form onSubmit={onSubmit} className="grid gap-4">
+          <form onSubmit={onSubmit} className="grid gap-4 min-w-0">
             <div className="grid gap-1.5">
               <label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Nama kamu
               </label>
               <Input id="name" name="name" placeholder="cth. Budi Santoso" required
-                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20" />
+                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20 w-full" />
             </div>
             <div className="grid gap-1.5">
               <label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Alamat email
               </label>
               <Input id="email" name="email" type="email" placeholder="kamu@contoh.com" required
-                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20" />
+                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20 w-full" />
             </div>
             <div className="grid gap-1.5">
               <label htmlFor="message" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -152,7 +152,7 @@ export function ContactForm() {
               </label>
               <Textarea id="message" name="message" rows={4} required
                 placeholder="Tanya soal produk, pesanan custom, atau hal lainnya"
-                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20 resize-none" />
+                className="rounded-xl border-border bg-background focus:border-primary/40 focus:ring-primary/20 resize-none w-full" />
             </div>
             <Button type="submit" disabled={loading}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl py-5 text-sm font-semibold shadow-md shadow-primary/20 hover:-translate-y-0.5 transition-all gap-2">

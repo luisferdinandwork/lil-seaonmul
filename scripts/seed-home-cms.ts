@@ -1,15 +1,36 @@
 // scripts/seed-home-cms.ts
+// Jalankan dengan:  npm run seed:home
+//
+// FIX: Menggunakan relative imports (../db, ../lib/...) bukan @/ alias.
+// tsx tidak bisa resolve alias @/ tanpa konfigurasi tambahan, tapi
+// relative imports selalu bekerja.
+
 import 'dotenv/config';
-import { db } from '@/db';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
+import * as schema from '../db/schema';
+import { nanoid } from 'nanoid';
 import {
-  createHeroSlide,
-  createGalleryItem,
-  createShopCategory,
-} from '@/lib/home-cms';
+  heroSlides,
+  galleryItems,
+  shopCategories,
+} from '../db/schema';
+
+// ─── Inisialisasi DB langsung (tanpa @/db) ────────────────────────────────────
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL belum diatur di .env');
+  process.exit(1);
+}
+
+const sql = neon(process.env.DATABASE_URL!);
+const db  = drizzle(sql, { schema });
+
+// ─── Konstanta ────────────────────────────────────────────────────────────────
 
 const SHOPEE_BASE = 'https://shopee.co.id/litty.kitty10';
 
-// ─── Data Hero Slides ────────────────────────────────────────────────────────
+// ─── Data Hero Slides ─────────────────────────────────────────────────────────
+
 const heroSlidesData = [
   {
     label: 'Gantungan Kucing',
@@ -55,14 +76,14 @@ const heroSlidesData = [
   },
 ];
 
-// ─── Data Gallery Items ──────────────────────────────────────────────────────
+// ─── Data Gallery Items ───────────────────────────────────────────────────────
+
 const galleryItemsData = [
   {
-    // Ini jadi featured (sortOrder: 0)
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=800&fit=crop',
     alt: 'Koleksi hadiah pastel Lil.Seonmul',
     label: 'Koleksi Terbaru',
-    shopeeUrl: `${SHOPEE_BASE}`,
+    shopeeUrl: SHOPEE_BASE,
     sortOrder: 0,
     active: true,
   },
@@ -100,13 +121,14 @@ const galleryItemsData = [
   },
 ];
 
-// ─── Data Shop Categories ────────────────────────────────────────────────────
+// ─── Data Shop Categories ─────────────────────────────────────────────────────
+
 const shopCategoriesData = [
   {
     label: 'Gantungan Kunci',
     sub: '15+ desain lucu',
     badge: 'Terlaris',
-    badgeVariant: 'bestseller' as const,
+    badgeVariant: 'bestseller',
     image: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=400&h=300&fit=crop',
     shopeeUrl: `${SHOPEE_BASE}/search?keyword=gantungan+kunci`,
     sortOrder: 0,
@@ -116,7 +138,7 @@ const shopCategoriesData = [
     label: 'Hadiah Spesial',
     sub: 'Bungkus gratis',
     badge: 'Trending',
-    badgeVariant: 'trending' as const,
+    badgeVariant: 'trending',
     image: 'https://images.unsplash.com/photo-1549465220-1a8b9238f539?w=400&h=300&fit=crop',
     shopeeUrl: `${SHOPEE_BASE}/search?keyword=hadiah+spesial`,
     sortOrder: 1,
@@ -126,7 +148,7 @@ const shopCategoriesData = [
     label: 'Mainan Kawaii',
     sub: 'Aman & lembut',
     badge: 'Baru',
-    badgeVariant: 'new' as const,
+    badgeVariant: 'new',
     image: 'https://images.unsplash.com/photo-1559715541-5daf8a0296d0?w=400&h=300&fit=crop',
     shopeeUrl: `${SHOPEE_BASE}/search?keyword=mainan+kawaii`,
     sortOrder: 2,
@@ -136,7 +158,7 @@ const shopCategoriesData = [
     label: 'Set Hampers',
     sub: 'Custom sesuka hati',
     badge: 'Populer',
-    badgeVariant: 'popular' as const,
+    badgeVariant: 'popular',
     image: 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&h=300&fit=crop',
     shopeeUrl: `${SHOPEE_BASE}/search?keyword=set+hampers`,
     sortOrder: 3,
@@ -144,37 +166,37 @@ const shopCategoriesData = [
   },
 ];
 
-// ─── Seeder ──────────────────────────────────────────────────────────────────
+// ─── Runner ───────────────────────────────────────────────────────────────────
 
 async function seed() {
-  console.log('🌱 Memulai seeding data Home CMS...\n');
+  console.log('Memulai seeding data Home CMS...\n');
 
   // Hero Slides
-  console.log('📐 Menyisipkan hero slides...');
-  for (const data of heroSlidesData) {
-    const slide = await createHeroSlide(data);
-    console.log(`  ✅ ${slide.label} (id: ${slide.id})`);
-  }
+  console.log('Menyisipkan hero slides...');
+  await db.delete(heroSlides);
+  const heroRows = heroSlidesData.map(d => ({ id: nanoid(), ...d }));
+  await db.insert(heroSlides).values(heroRows);
+  heroRows.forEach(r => console.log(`  OK  ${r.label} (id: ${r.id})`));
 
   // Gallery Items
-  console.log('\n🖼️ Menyisipkan gallery items...');
-  for (const data of galleryItemsData) {
-    const item = await createGalleryItem(data);
-    console.log(`  ✅ ${item.label} (id: ${item.id})`);
-  }
+  console.log('\nMenyisipkan gallery items...');
+  await db.delete(galleryItems);
+  const galleryRows = galleryItemsData.map(d => ({ id: nanoid(), ...d }));
+  await db.insert(galleryItems).values(galleryRows);
+  galleryRows.forEach(r => console.log(`  OK  ${r.label} (id: ${r.id})`));
 
   // Shop Categories
-  console.log('\n🛍️ Menyisipkan shop categories...');
-  for (const data of shopCategoriesData) {
-    const cat = await createShopCategory(data);
-    console.log(`  ✅ ${cat.label} (id: ${cat.id})`);
-  }
+  console.log('\nMenyisipkan shop categories...');
+  await db.delete(shopCategories);
+  const catRows = shopCategoriesData.map(d => ({ id: nanoid(), ...d }));
+  await db.insert(shopCategories).values(catRows);
+  catRows.forEach(r => console.log(`  OK  ${r.label} (id: ${r.id})`));
 
-  console.log('\n✨ Seeding selesai!');
+  console.log('\nSeeding selesai!');
   process.exit(0);
 }
 
-seed().catch((err) => {
-  console.error('❌ Seeder gagal:', err);
+seed().catch(err => {
+  console.error('Seeder gagal:', err);
   process.exit(1);
 });

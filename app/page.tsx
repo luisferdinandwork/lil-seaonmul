@@ -32,8 +32,6 @@ export default function HomePage() {
         <WhyUs />
         <ContactForm />
       </div>
-
-      <FooterLinks />
     </main>
   )
 }
